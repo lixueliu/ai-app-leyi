@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>地铁跑酷小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{
+    background: linear-gradient(#050118, #0f0633, #1a0b4d);
+    min-height: 100vh;
+    overflow-x:hidden;
+    position:relative;
+}
+/* 动态移动星空背景 */
+.stars{
+    position:fixed;
+    top:0;left:0;
+    width:200%;height:200%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px,#fff,transparent),
+        radial-gradient(2px 2px at 60px 90px,#fff,transparent),
+        radial-gradient(1px 1px at 120px 50px,#fff,transparent);
+    background-repeat:repeat;
+    background-size:400px 300px;
+    opacity:0.6;
+    z-index:-1;
+    animation:moveStar 60s linear infinite;
+}
+@keyframes moveStar{
+    0%{transform:translate(0,0)}
+    100%{transform:translate(-50%,-50%)}
+}
+.wrap{
+    max-width:900px;
+    margin:30px auto;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(8px);
+    border-radius:18px;
+    padding:25px;
+    text-align:center;
+}
+.title{
+    color:#fff;
+    font-size:32px;
+    margin-bottom:15px;
+}
+#gameCanvas{
+    border:3px solid #333;
+    background:#6688aa;
+}
+.info{
+    color:#eef;
+    font-size:20px;
+    margin:12px 0;
+}
+.startBtn{
+    padding:12px 40px;
+    font-size:22px;
+    background:#22aa66;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:10px;
+}
+.startBtn:hover{
+    background:#188850;
+}
+.tip{
+    color:#cce0ff;
+    font-size:18px;
+    margin-top:10px;
+    line-height:1.6;
+}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+    <h1 class="title">地铁跑酷（无战斗）</h1>
+    <div class="info">当前金币：<span id="coinText">0</span></div>
+    <canvas id="gameCanvas" width="720" height="480"></canvas>
+    <button class="startBtn" id="startBtn">点击开始游戏</button>
+    <p class="tip">操作：↑跳跃  ↓下滑  ←左移  →右移<br>躲避列车与路障，收集金币，碰到障碍游戏结束</p>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const coinText = document.getElementById("coinText");
+const startBtn = document.getElementById("startBtn");
+
+// 游戏开关
+let gameRun = false;
+let coin = 0;
+const laneWidth = canvas.width / 3;
+
+// 玩家数据
+const player = {
+    w:40,
+    h:60,
+    x:laneWidth,
+    y:canvas.height - 100,
+    lane:1,
+    jump:false,
+    jumpH:0,
+    slide:false
+};
+
+// 障碍物、金币数组
+let obstacleList = [];
+let coinList = [];
+let speed = 4;
+
+// 按键监听
+const key = {};
+document.addEventListener("keydown",e=>{
+    key[e.key] = true;
+});
+document.addEventListener("keyup",e=>{
+    key[e.key] = false;
+});
+
+// 绘制轨道
+function drawRoad(){
+    ctx.fillStyle="#557799";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle="#fff";
+    ctx.lineWidth=4;
+    ctx.setLineDash([40,20]);
+    ctx.beginPath();
+    ctx.moveTo(laneWidth,0);
+    ctx.lineTo(laneWidth,canvas.height);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(laneWidth*2,0);
+    ctx.lineTo(laneWidth*2,canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+// 绘制角色
+function drawPlayer(){
+    let drawY = player.y - player.jumpH;
+    if(player.slide){
+        ctx.fillStyle="#ff7722";
+        ctx.fillRect(player.x, drawY+30, player.w, player.h/2);
+    }else{
+        ctx.fillStyle="#ff7722";
+        ctx.fillRect(player.x, drawY, player.w, player.h);
+        ctx.fillStyle="#fff";
+        ctx.fillRect(player.x+8, drawY+10, 24, 20);
+    }
+}
+
+// 生成障碍物
+function createObstacle(){
+    let lane = Math.floor(Math.random()*3);
+    let type = Math.random()>0.5 ? "train" : "block";
+    obstacleList.push({
+        x: lane*laneWidth + laneWidth/2 - 25,
+        y:-80,
+        w:50,
+        h:80,
+        lane:lane,
+        type:type
+    });
+}
+
+// 生成金币
+function createCoin(){
+    let lane = Math.floor(Math.random()*3);
+    coinList.push({
+        x: lane*laneWidth + laneWidth/2 -15,
+        y:-40,
+        r:15,
+        lane:lane
+    });
+}
+
+// 更新游戏物体
+function updateObj(){
+    // 障碍物移动
+    for(let i=obstacleList.length-1;i>=0;i--){
+        let o = obstacleList[i];
+        o.y += speed;
+        if(o.y>canvas.height){
+            obstacleList.splice(i,1);
+        }
+        // 碰撞检测
+        let px = player.x;
+        let py = player.y - player.jumpH;
+        if(px < o.x+o.w && px+player.w > o.x && py < o.y+o.h && py+player.h > o.y){
+            gameOver();
+            return;
+        }
+    }
+    // 金币移动、拾取
+    for(let i=coinList.length-1;i>=0;i--){
+        let c = coinList[i];
+        c.y += speed;
+        if(c.y>canvas.height){
+            coinList.splice(i,1);
+            continue;
+        }
+        let px = player.x + player.w/2;
+        let py = player.y - player.jumpH + player.h/2;
+        let dist = Math.hypot(px - c.x, py - c.y);
+        if(dist < c.r+20){
+            coin += 10;
+            coinText.innerText = coin;
+            coinList.splice(i,1);
+        }
+    }
+}
+
+// 绘制所有障碍物
+function drawObstacle(){
+    obstacleList.forEach(o=>{
+        if(o.type === "train") ctx.fillStyle="#dd2222";
+        else ctx.fillStyle="#777777";
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+    });
+}
+
+// 绘制金币
+function drawCoin(){
+    ctx.fillStyle="#ffdd00";
+    coinList.forEach(c=>{
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle="#ffaa00";
+        ctx.stroke();
+    });
+}
+
+// 玩家操作逻辑
+function playerControl(){
+    // 左右切换轨道
+    if(key["ArrowLeft"] && player.lane > 0){
+        player.lane--;
+        player.x = player.lane * laneWidth + laneWidth/2 - player.w/2;
+        key["ArrowLeft"] = false;
+    }
+    if(key["ArrowRight"] && player.lane < 2){
+        player.lane++;
+        player.x = player.lane * laneWidth + laneWidth/2 - player.w/2;
+        key["ArrowRight"] = false;
+    }
+    // 跳跃
+    if(key["ArrowUp"] && player.jumpH === 0){
+        player.jump = true;
+    }
+    if(player.jump){
+        player.jumpH +=6;
+        if(player.jumpH >=120){
+            player.jump = false;
+        }
+    }else if(player.jumpH >0){
+        player.jumpH -=6;
+    }
+    // 下滑
+    player.slide = key["ArrowDown"];
+}
+
+// 游戏循环
+function loop(){
+    if(!gameRun) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawRoad();
+    playerControl();
+    updateObj();
+    drawObstacle();
+    drawCoin();
+    drawPlayer();
+    requestAnimationFrame(loop);
+}
+
+// 游戏结束
+function gameOver(){
+    gameRun = false;
+    alert("游戏结束！本次收集金币："+coin+"\n点击按钮重新开始");
+    startBtn.style.display = "block";
+}
+
+// 随机生成道具
+function spawnTimer(){
+    if(!gameRun) return;
+    if(Math.random()<0.02) createObstacle();
+    if(Math.random()<0.04) createCoin();
+    setTimeout(spawnTimer,50);
+}
+
+// 开始游戏
+startBtn.onclick = function(){
+    gameRun = true;
+    coin = 0;
+    speed = 4;
+    obstacleList = [];
+    coinList = [];
+    player.lane = 1;
+    player.x = laneWidth + laneWidth/2 - player.w/2;
+    player.jumpH = 0;
+    coinText.innerText = coin;
+    startBtn.style.display = "none";
+    loop();
+    spawnTimer();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

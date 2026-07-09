@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>二年级下册数学闯关游戏【完整版】</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#f0f8ff;font-family:"微软雅黑";padding:40px;}
+        .game-box{max-width:650px;margin:0 auto;background:#fff;padding:35px;border-radius:20px;box-shadow:0 0 15px #cce4f6;}
+        .title{font-size:32px;color:#2288dd;text-align:center;font-weight:bold;margin-bottom:20px;}
+        .score-text{font-size:22px;color:#ff6600;text-align:center;margin-bottom:15px;}
+        .q-content{font-size:28px;color:#333;text-align:center;margin:30px 0;height:60px;line-height:60px;}
+        .btn-wrap{text-align:center;margin:20px 0;}
+        .opt-btn{display:inline-block;padding:12px 30px;margin:10px;border:none;border-radius:10px;background:#4096ff;color:#fff;font-size:22px;cursor:pointer;transition:0.2s;}
+        .opt-btn:hover{background:#0066cc;}
+        .next-btn{padding:10px 25px;font-size:20px;background:#36cfa2;border:none;color:#fff;border-radius:8px;cursor:pointer;margin-top:10px;}
+        .msg{font-size:22px;font-weight:bold;margin-top:20px;text-align:center;}
+        .right{color:green;}
+        .wrong{color:red;}
+    </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="game-box">
+    <div class="title">二年级数学闯关小达人</div>
+    <div class="score-text">当前得分：<span id="score">0</span> 分</div>
+    <div class="q-content" id="question">正在加载题目...</div>
+    <div class="btn-wrap" id="btnBox"></div>
+    <div class="msg" id="msgBox"></div>
+    <div style="text-align:center;margin-top:25px;">
+        <button class="next-btn" onclick="nextQuestion()">下一题</button>
+    </div>
+</div>
+
+<script>
+let score = 0;
+let index = 0;
+
+// 完整版题库：全覆盖二年级下册重难点
+let questions = [
+    // 表内除法
+    {q:"12 ÷ 4 = ?",opts:["2","3","4"],right:1},
+    {q:"18 ÷ 3 = ?",opts:["6","5","7"],right:0},
+    {q:"24 ÷ 6 = ?",opts:["3","4","5"],right:1},
+    {q:"35 ÷ 7 = ?",opts:["5","6","7"],right:0},
+    {q:"40 ÷ 8 = ?",opts:["4","5","6"],right:1},
+    // 混合运算
+    {q:"3 + 2×5 = ?",opts:["25","13","10"],right:1},
+    {q:"20 - 12÷2 = ?",opts:["4","14","6"],right:1},
+    {q:"(8-3)×4 = ?",opts:["20","5","12"],right:0},
+    {q:"42÷6 + 15 = ?",opts:["22","17","8"],right:0},
+    {q:"30 - (5+10) = ?",opts:["35","15","25"],right:1},
+    // 克与千克
+    {q:"1千克 = ? 克",opts:["100","1000","10"],right:1},
+    {q:"一个鸡蛋大约重50？",opts:["克","千克","厘米"],right:0},
+    {q:"一袋大米重25？",opts:["克","千克","米"],right:1},
+    {q:"500克+500克=？",opts:["100克","1千克","2千克"],right:1},
+    // 平移与旋转
+    {q:"风扇转动属于？",opts:["平移","旋转","不动"],right:1},
+    {q:"推拉窗户属于？",opts:["平移","旋转","对折"],right:0},
+    {q:"车轮滚动是？",opts:["平移","旋转","对称"],right:1},
+    // 有余数除法
+    {q:"25 ÷ 4 的余数是？",opts:["1","2","3"],right:0},
+    {q:"33 ÷ 5 的余数是？",opts:["2","3","4"],right:1},
+    {q:"余数必须（）除数",opts:["大于","等于","小于"],right:2}
+];
+
+// 渲染题目
+function showQuestion(){
+    let q = questions[index];
+    document.getElementById("question").innerText = q.q;
+    document.getElementById("msgBox").innerText = "";
+    document.getElementById("btnBox").innerHTML = "";
+
+    for(let i=0;i<q.opts.length;i++){
+        let btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.innerText = q.opts[i];
+        btn.onclick = function(){ checkAnswer(i); }
+        document.getElementById("btnBox").appendChild(btn);
+    }
+}
+
+// 判断对错
+function checkAnswer(num){
+    let q = questions[index];
+    let msg = document.getElementById("msgBox");
+    if(num === q.right){
+        score += 10;
+        document.getElementById("score").innerText = score;
+        msg.innerText = "✅ 答对啦！+10分";
+        msg.className = "msg right";
+    }else{
+        msg.innerText = "❌ 答错啦！正确答案：" + q.opts[q.right];
+        msg.className = "msg wrong";
+    }
+}
+
+// 下一题、通关结算
+function nextQuestion(){
+    index++;
+    if(index >= questions.length){
+        alert("🎉 全部闯关完成！\n总分："+score+" 分（满分200分）");
+        index = 0;
+        score = 0;
+        document.getElementById("score").innerText = 0;
+    }
+    showQuestion();
+}
+
+// 初始化
+showQuestion();
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

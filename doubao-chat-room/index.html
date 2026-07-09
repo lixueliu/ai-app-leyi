@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>豆包对话聊天小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{background:#1c2230;padding:40px;}
+.main-box{max-width:700px;margin:0 auto;background:#272e42;padding:35px;border-radius:20px;box-shadow:0 0 16px #415588;}
+.title{font-size:36px;color:#63b8ff;text-align:center;font-weight:bold;margin-bottom:25px;}
+.desc{font-size:22px;color:#cccccc;text-align:center;line-height:1.7;margin-bottom:30px;}
+.btn{display:block;margin:16px auto;padding:14px 40px;font-size:23px;border:none;border-radius:12px;cursor:pointer;transition:0.2s;}
+.start-btn{background:#2986cc;color:#fff;}
+.start-btn:hover{background:#1e6ea8;}
+.control-row{display:flex;gap:12px;justify-content:center;margin:25px 0;display:none;}
+.voice-btn{background:#dd3344;color:#fff;}
+.voice-btn:hover{background:#b82733;}
+.send-btn{background:#23a878;color:#fff;}
+.send-btn:hover{background:#1d8c64;}
+.input-area{width:90%;display:block;margin:0 auto 20px;padding:14px;font-size:20px;border-radius:10px;background:#333b54;border:none;color:#fff;outline:#63b8ff solid 2px;display:none;}
+.subtitle-box{width:95%;min-height:300px;margin:20px auto;background:#1e2436;padding:20px;border-radius:14px;border:1px solid #445577;display:none;}
+.subtitle-title{font-size:24px;color:#ffd360;text-align:center;margin-bottom:15px;}
+.msg-item{font-size:20px;color:#eee;line-height:1.8;margin:10px 0;}
+.user-text{color:#7aff9f;}
+.doubao-text{color:#63b8ff;}
+.tip-text{text-align:center;color:#ff8888;font-size:19px;margin-top:10px;display:none;}
+#startPage{text-align:center;}
+#chatPage{display:none;}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="main-box">
+    <!-- 初始启动页面，必须点击开始游戏 -->
+    <div id="startPage">
+        <div class="title">豆包对话小屋</div>
+        <div class="desc">
+            和豆包自由聊天！两种对话方式<br>
+            文字输入实时生成字幕｜麦克风录音语音转文字
+        </div>
+        <button class="btn start-btn" onclick="openChat()">开始对话</button>
+    </div>
+
+    <!-- 对话主页面 -->
+    <div id="chatPage">
+        <div class="title">与豆包对话中</div>
+        <input class="input-area" id="textInput" placeholder="在这里输入你想和豆包说的话...">
+        <div class="control-row">
+            <button class="btn voice-btn" id="recordBtn" onclick="startRecord()">按住录音说话</button>
+            <button class="btn send-btn" onclick="sendText()">发送文字字幕</button>
+        </div>
+        <div class="tip-text" id="recordTip"></div>
+        <!-- 字幕展示区域 -->
+        <div class="subtitle-box">
+            <div class="subtitle-title">实时对话字幕</div>
+            <div id="subtitleContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let recognition = null;
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let subtitleWrap = document.getElementById("subtitleContent");
+
+// 进入聊天界面
+function openChat(){
+    document.getElementById("startPage").style.display = "none";
+    document.getElementById("chatPage").style.display = "block";
+    document.querySelector(".input-area").style.display = "block";
+    document.querySelector(".control-row").style.display = "flex";
+    document.querySelector(".subtitle-box").style.display = "block";
+    // 初始化语音识别
+    initVoiceRecognition();
+}
+
+// 初始化录音识别
+function initVoiceRecognition(){
+    if(!SpeechRecognition){
+        document.getElementById("recordTip").innerText = "当前浏览器不支持录音转文字功能，请使用文字输入";
+        document.getElementById("recordTip").style.display = "block";
+        document.getElementById("recordBtn").disabled = true;
+        return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = "zh-CN";
+    // 识别成功回调
+    recognition.onresult = (e)=>{
+        let voiceText = e.results[0][0].transcript;
+        addSubtitle("用户(录音)", voiceText, "user-text");
+        autoReply(voiceText);
+    }
+    recognition.onerror = ()=>{
+        document.getElementById("recordTip").innerText = "录音失败，请允许麦克风权限！";
+        document.getElementById("recordTip").style.display = "block";
+    }
+}
+
+// 开启录音
+function startRecord(){
+    if(!recognition) return;
+    document.getElementById("recordTip").innerText = "正在录音，请说话...松开按钮结束";
+    document.getElementById("recordTip").style.display = "block";
+    recognition.start();
+    // 3秒自动停止录音
+    setTimeout(()=>{
+        recognition.stop();
+        document.getElementById("recordTip").innerText = "录音结束，已生成字幕";
+    },3000);
+}
+
+// 发送文字消息生成字幕
+function sendText(){
+    let inputDom = document.getElementById("textInput");
+    let content = inputDom.value.trim();
+    if(content === ""){
+        alert("请输入对话内容！");
+        return;
+    }
+    addSubtitle("用户(文字)", content, "user-text");
+    inputDom.value = "";
+    autoReply(content);
+}
+
+// 添加字幕到页面
+function addSubtitle(speaker, text, colorClass){
+    let div = document.createElement("div");
+    div.className = "msg-item " + colorClass;
+    div.innerText = `${speaker}：${text}`;
+    subtitleWrap.appendChild(div);
+    // 自动滚动到底部
+    subtitleWrap.scrollTop = subtitleWrap.scrollHeight;
+}
+
+// 豆包自动回复对话
+function autoReply(userMsg){
+    let replyList = [
+        "我在呢！你继续说，我认真听着",
+        "原来是这样，还有什么想跟我分享吗？",
+        "有意思！再多和我讲讲这件事吧",
+        "我听懂啦，你的想法很有趣",
+        "哇，原来是这样，我记下了",
+        "辛苦啦，有烦恼都可以跟我说"
+    ];
+    let randomReply = replyList[Math.floor(Math.random() * replyList.length)];
+    setTimeout(()=>{
+        addSubtitle("豆包", randomReply, "doubao-text");
+    },600);
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

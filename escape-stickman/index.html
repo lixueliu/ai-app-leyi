@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>逃离木棍人</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{
+    background: #e9e9e9;
+    background-image: linear-gradient(#dddddd 1px, transparent 1px),
+                      linear-gradient(90deg, #dddddd 1px, transparent 1px);
+    background-size: 30px 30px;
+    min-height: 100vh;
+    padding: 30px;
+}
+.container{
+    max-width: 750px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px #bbbbbb;
+    text-align: center;
+}
+.title{
+    font-size: 32px;
+    color: #333333;
+    margin-bottom: 15px;
+}
+#gameCanvas{
+    border: 3px solid #777;
+    background: #f7f7f7;
+    cursor: none;
+}
+.info-bar{
+    font-size: 22px;
+    color: #444;
+    margin: 12px 0;
+}
+.start-btn{
+    padding: 12px 40px;
+    font-size: 22px;
+    background: #2288dd;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+.start-btn:hover{
+    background: #196fb3;
+}
+.tips{
+    font-size: 18px;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="container">
+    <h1 class="title">逃离木棍人</h1>
+    <div class="info-bar">存活分数：<span id="scoreText">0</span></div>
+    <canvas id="gameCanvas" width="680" height="420"></canvas>
+    <button class="start-btn" id="startBtn">点击开始游戏</button>
+    <p class="tips">鼠标操控黑色主角<br>1.蓝色安全房间：红怪无法进入；在房内10秒无敌，一出房间无敌立刻清零<br>2.在房间内连续停留满10秒，房间自动生成炮台；子弹击中变红人类/小红狗，都会变回逃生者<br>3.坚持存活满30秒，只要还有人没被抓，直接判定玩家胜利<br>4.所有人不能跑出画布边界；蓝AI、小黄狗见红怪会逃跑<br>5.小黄狗清除分身、解救变红人类；被抓到变小红狗抓人<br>6.你变红后鼠标可控抓人；红色单位定时分身繁殖<br>7.全员被抓=抓捕方胜利；存活30秒仍有逃生者=玩家胜利</p>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreText = document.getElementById("scoreText");
+const startBtn = document.getElementById("startBtn");
+const W = canvas.width;
+const H = canvas.height;
+
+let gameRunning = false;
+let score = 0;
+let scoreTimer;
+let cloneTimer = 0;
+let frameCount = 0;
+let bulletList = [];
+const winFrame = 1800; // 30秒 = 1800帧(60帧/秒)
+
+// 安全房间区域 [x,y,w,h]
+const rooms = [
+    {x:20,y:20,w:130,h:100,stayTimer:0,hasTurret:false},
+    {x:530,y:20,w:130,h:100,stayTimer:0,hasTurret:false},
+    {x:20,y:300,w:130,h:100,stayTimer:0,hasTurret:false},
+    {x:530,y:300,w:130,h:100,stayTimer:0,hasTurret:false}
+];
+// 炮台位置缓存
+const turrets = rooms.map((r,idx)=>{
+    return {x:r.x+r.w/2, y:r.y+r.h/2, fireCd:0};
+});
+
+// 判断坐标是否在房间内
+function pointInRoom(px,py,size,room){
+    const r = size/2;
+    return px-r > room.x && px+r < room.x+room.w && py-r > room.y && py+r < room.y+room.h;
+}
+
+// 边界限制函数
+function clampEntity(entity) {
+    const half = entity.size / 2;
+    if (entity.x < half) entity.x = half;
+    if (entity.x > W - half) entity.x = W - half;
+    if (entity.y < half) entity.y = half;
+    if (entity.y > H - half) entity.y = H - half;
+}
+
+// 红色单位碰到房间就弹开，禁止进入房间
+function blockRoomForHunter(hunter){
+    const half = hunter.size / 2;
+    for(let r of rooms){
+        if(hunter.x-half < r.x+r.w && hunter.x+half > r.x && hunter.y-half < r.y+r.h && hunter.y+half > r.y){
+            const centerX = r.x + r.w/2;
+            const centerY = r.y + r.h/2;
+            const dx = hunter.x - centerX;
+            const dy = hunter.y - centerY;
+            const len = Math.hypot(dx,dy);
+            hunter.x += dx / len * 3;
+            hunter.y += dy / len * 3;
+        }
+    }
+}
+
+// 玩家主角
+const player = {
+    x: 340,
+    y: 210,
+    size: 24,
+    isCaught: false,
+    safeTimer: 0
+};
+
+// 3个蓝色AI
+let aiPlayers = [
+    { x: 100, y: 100, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 },
+    { x: 580, y: 90, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 },
+    { x: 120, y: 330, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 }
+];
+
+// 原生红木棍人
+const mainStickMan = {
+    x: 60,
+    y: 60,
+    size: 38,
+    speed: 1.6,
+    eyeAngle: 0
+};
+let allHunters = [];
+
+// 小狗
+const dog = {
+    x: 450,
+    y: 300,
+    size: 20,
+    speed: 2.8,
+    dx: 0,
+    dy: 0,
+    changeTimer: 0,
+    isEvil: false
+};
+
+canvas.addEventListener("mousemove", e => {
+    if (!gameRunning) return;
+    const rect = canvas.getBoundingClientRect();
+    player.x = e.clientX - rect.left;
+    player.y = e.clientY - rect.top;
+    clampEntity(player);
+});
+
+// 绘制普通小人
+function drawHuman(x, y, size, color, safe) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(x, y - size/2, size/3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.moveTo(x, y - size/6);
+    ctx.lineTo(x, y + size/3);
+    ctx.moveTo(x - size/2, y);
+    ctx.lineTo(x + size/2, y);
+    ctx.moveTo(x, y + size/3);
+    ctx.lineTo(x - size/3, y + size/2);
+    ctx.moveTo(x, y + size/3);
+    ctx.lineTo(x + size/3, y + size/2);
+    ctx.stroke();
+    if(safe>0){
+        ctx.strokeStyle="#00ff00";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.arc(x,y,size/2+6,0,Math.PI*2);
+        ctx.stroke();
+    }
+}
+
+// 红色抓捕者绘制
+function drawScaryHunter(x, y, size, angle) {
+    angle += 0.08;
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(x + 4, y - size/2 + 4, size/3, 0, Math.PI * 2);
+    ctx.moveTo(x + 4, y - size/6 + 4);
+    ctx.lineTo(x + 4, y + size/3 + 4);
+    ctx.moveTo(x - size/2 + 4, y + 4);
+    ctx.lineTo(x + size/2 + 4, y + 4);
+    ctx.moveTo(x + 4, y + size/3 + 4);
+    ctx.lineTo(x - size/3 + 4, y + size/2 + 4);
+    ctx.moveTo(x + 4, y + size/3 + 4);
+    ctx.lineTo(x + size/3 + 4, y + size/2 + 4);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#990000";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(x, y - size/2, size/3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.moveTo(x, y - size/6);
+    ctx.lineTo(x, y + size/3);
+    ctx.moveTo(x - size/2, y);
+    ctx.lineTo(x + size/2, y);
+    ctx.moveTo(x, y + size/3);
+    ctx.lineTo(x - size/3, y + size/2);
+    ctx.moveTo(x, y + size/3);
+    ctx.lineTo(x + size/3, y + size/2);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#220000";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y - size/2, size/3 + 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#ff2222";
+    ctx.shadowColor = "#ff0000";
+    ctx.shadowBlur = 12;
+    const eyeOffX = Math.cos(angle) * 2;
+    const eyeOffY = Math.sin(angle) * 1.5;
+    ctx.beginPath();
+    ctx.arc(x - size/7 + eyeOffX, y - size/2 - 2 + eyeOffY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + size/7 + eyeOffX, y - size/2 - 2 + eyeOffY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = "#ff2222";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y - size/2 + size/5, 5, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+}
+
+// 小狗绘制
+function drawDog(x, y, size, evil) {
+    if (evil) {
+        ctx.fillStyle = "#990000";
+        ctx.shadowColor = "#ff0000";
+        ctx.shadowBlur = 8;
+    } else {
+        ctx.fillStyle = "#ffcc33";
+        ctx.shadowBlur = 0;
+    }
+    ctx.beginPath();
+    ctx.ellipse(x, y, size, size * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x - size * 0.8, y - size * 0.6, size * 0.4, size * 0.6, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x + size * 0.8, y - size * 0.6, size * 0.4, size * 0.6, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = evil ? "#ff2222" : "#000";
+    ctx.beginPath();
+    ctx.arc(x - size * 0.4, y - size * 0.2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + size * 0.4, y - size * 0.2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = evil ? "#ff2222" : "#000";
+    ctx.lineWidth = 2;
+    if (evil) ctx.arc(x, y + size * 0.4, 5, Math.PI + 0.2, -0.2);
+    else ctx.arc(x, y + size * 0.4, 5, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+
+// 绘制房间
+function drawRooms(){
+    ctx.fillStyle="#e8f4ff";
+    ctx.strokeStyle="#2277dd";
+    ctx.lineWidth=3;
+    for(let r of rooms){
+        ctx.fillRect(r.x,r.y,r.w,r.h);
+        ctx.strokeRect(r.x,r.y,r.w,r.h);
+        ctx.fillStyle="#2277dd";
+        ctx.font="14px 微软雅黑";
+        ctx.fillText("安全房间",r.x+10,r.y+25);
+        if(r.hasTurret){
+            ctx.fillText("已生成炮台",r.x+10,r.y+45);
+        }
+    }
+}
+
+// 绘制炮台
+function drawTurrets(){
+    rooms.forEach((r,idx)=>{
+        if(!r.hasTurret) return;
+        const t = turrets[idx];
+        ctx.fillStyle="#666666";
+        ctx.beginPath();
+        ctx.arc(t.x,t.y,12,0,Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle="#ff7700";
+        ctx.fillRect(t.x-2,t.y-15,4,16);
+    })
+}
+
+// 绘制子弹
+function drawBullets(){
+    ctx.fillStyle="#ffdd00";
+    bulletList.forEach(b=>{
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,4,0,Math.PI*2);
+        ctx.fill();
+    })
+}
+
+function getAllHunters() {
+    return [mainStickMan, ...allHunters];
+}
+
+function getMinHunterDis(tarX, tarY) {
+    const hunters = getAllHunters();
+    let min = Infinity;
+    hunters.forEach(h => {
+        const d = Math.hypot(h.x - tarX, h.y - tarY);
+        if (d < min) min = d;
+    });
+    return min;
+}
+
+function refreshAIDir(ai) {
+    const angle = Math.random() * Math.PI * 2;
+    ai.dx = Math.cos(angle);
+    ai.dy = Math.sin(angle);
+}
+function refreshDogDir() {
+    const angle = Math.random() * Math.PI * 2;
+    dog.dx = Math.cos(angle);
+    dog.dy = Math.sin(angle);
+}
+
+function updateAI(ai) {
+    if (ai.isCaught) return;
+    const disHunter = getMinHunterDis(ai.x, ai.y);
+    ai.changeTimer++;
+    let inAnyRoom = false;
+    for(let r of rooms){
+        if(pointInRoom(ai.x,ai.y,ai.size,r)) inAnyRoom=true;
+    }
+    if(inAnyRoom){
+        ai.safeTimer = 600;
+    }else{
+        ai.safeTimer = 0;
+    }
+    if (disHunter < 180) {
+        let avgX = 0, avgY = 0;
+        getAllHunters().forEach(h => { avgX += h.x; avgY += h.y; });
+        avgX /= getAllHunters().length;
+        avgY /= getAllHunters().length;
+        const escapeAngle = Math.atan2(ai.y - avgY, ai.x - avgX);
+        ai.dx = Math.cos(escapeAngle);
+        ai.dy = Math.sin(escapeAngle);
+        ai.changeTimer = 0;
+    } else if (ai.changeTimer > 60) {
+        refreshAIDir(ai);
+        ai.changeTimer = 0;
+    }
+    ai.x += ai.dx * ai.speed;
+    ai.y += ai.dy * ai.speed;
+    clampEntity(ai);
+}
+
+function updateDog() {
+    dog.changeTimer++;
+    if (dog.isEvil) {
+        const alive = getAliveList();
+        if (alive.length > 0) {
+            let minD = Infinity, t = alive[0];
+            alive.forEach(p => {
+                const d = Math.hypot(p.x - dog.x, p.y - dog.y);
+                if (d < minD) { minD = d; t = p; }
+            });
+            const dx = t.x - dog.x;
+            const dy = t.y - dog.y;
+            const len = Math.hypot(dx, dy);
+            dog.dx = dx / len;
+            dog.dy = dy / len;
+        }
+    } else {
+        const disHunter = getMinHunterDis(dog.x, dog.y);
+        if (disHunter < 180) {
+            let avgX = 0, avgY = 0;
+            getAllHunters().forEach(h => { avgX += h.x; avgY += h.y; });
+            avgX /= getAllHunters().length;
+            avgY /= getAllHunters().length;
+            const escapeAngle = Math.atan2(dog.y - avgY, dog.x - avgX);
+            dog.dx = Math.cos(escapeAngle);
+            dog.dy = Math.sin(escapeAngle);
+            dog.changeTimer = 0;
+        } else if (dog.changeTimer > 80) {
+            refreshDogDir();
+            dog.changeTimer = 0;
+        }
+    }
+    dog.x += dog.dx * dog.speed;
+    dog.y += dog.dy * dog.speed;
+    clampEntity(dog);
+}
+
+function getAliveList() {
+    let arr = [];
+    if (!player.isCaught) arr.push(player);
+    aiPlayers.forEach(ai => { if (!ai.isCaught) arr.push(ai); });
+    return arr;
+}
+
+function findNearestAlive(huntX, huntY) {
+    const alive = getAliveList();
+    if (alive.length === 0) return null;
+    let minDis = Infinity;
+    let target = alive[0];
+    alive.forEach(p => {
+        const d = Math.hypot(p.x - huntX, p.y - huntY);
+        if (d < minDis) { minDis = d; target = p; }
+    });
+    return target;
+}
+
+function findNearestHunter(fromX,fromY){
+    const hunters = getAllHunters();
+    if(hunters.length===0) return null;
+    let minD=Infinity,tar=hunters[0];
+    hunters.forEach(h=>{
+        const d=Math.hypot(h.x-fromX,h.y-fromY);
+        if(d<minD){minD=d;tar=h;}
+    });
+    return tar;
+}
+
+function hitCheck(x1, y1, s1, x2, y2, s2) {
+    const dis = Math.hypot(x1 - x2, y1 - y2);
+    return dis < (s1 + s2) / 2;
+}
+
+function countCaughtTotal() {
+    let cnt = 0;
+    if (player.isCaught) cnt++;
+    aiPlayers.forEach(ai => { if (ai.isCaught) cnt++; });
+    return cnt;
+}
+
+function gameLoop() {
+    if (!gameRunning) return;
+    ctx.clearRect(0, 0, W, H);
+    frameCount++;
+    cloneTimer++;
+
+    // 30秒胜利判定：存活满1800帧且还有人没被抓直接赢
+    if(frameCount >= winFrame){
+        const caughtNum = countCaughtTotal();
+        if(caughtNum < 4){
+            gameRunning = false;
+            clearInterval(scoreTimer);
+            alert(`游戏结束！玩家胜利！\n成功坚持30秒，仍有逃生者存活，本局分数：${score}`);
+            startBtn.style.display = "block";
+            return;
+        }
+    }
+
+    // 玩家房间逻辑：在房间内=10秒无敌，离开立刻清零
+    let playerInAnyRoom = false;
+    for(let r of rooms){
+        if(pointInRoom(player.x,player.y,player.size,r)){
+            playerInAnyRoom = true;
+            r.stayTimer++;
+            if(r.stayTimer >= 600) r.hasTurret = true;
+        }else{
+            r.stayTimer = 0;
+        }
+    }
+    if(playerInAnyRoom){
+        player.safeTimer = 600;
+    }else{
+        player.safeTimer = 0;
+    }
+
+    aiPlayers.forEach(ai => updateAI(ai));
+    updateDog();
+
+    // 定时分身
+    if (cloneTimer >= 200) {
+        cloneTimer = 0;
+        getAllHunters().forEach(h => {
+            const newHunter = {
+                x: h.x + (Math.random() - 0.5) * 30,
+                y: h.y + (Math.random() - 0.5) * 30,
+                size: h.size,
+                speed: 1.6,
+                eyeAngle: Math.random() * 5
+            };
+            clampEntity(newHunter);
+            blockRoomForHunter(newHunter);
+            allHunters.push(newHunter);
+        });
+    }
+
+    // 所有红怪追击+禁止进入房间
+    getAllHunters().forEach(hunter => {
+        const tar = findNearestAlive(hunter.x, hunter.y);
+        if (tar) {
+            if (hunter.x < tar.x) hunter.x += hunter.speed;
+            if (hunter.x > tar.x) hunter.x -= hunter.speed;
+            if (hunter.y < tar.y) hunter.y += hunter.speed;
+            if (hunter.y > tar.y) hunter.y -= hunter.speed;
+        }
+        clampEntity(hunter);
+        blockRoomForHunter(hunter);
+    });
+
+    // 炮台发射子弹
+    rooms.forEach((r,idx)=>{
+        if(!r.hasTurret) return;
+        const t = turrets[idx];
+        t.fireCd--;
+        if(t.fireCd<=0){
+            const targetHunter = findNearestHunter(t.x,t.y);
+            if(targetHunter){
+                const dx=targetHunter.x - t.x;
+                const dy=targetHunter.y - t.y;
+                const len=Math.hypot(dx,dy);
+                bulletList.push({
+                    x:t.x,
+                    y:t.y,
+                    vx:dx/len*6,
+                    vy:dy/len*6,
+                    life:120
+                });
+                t.fireCd=40;
+            }
+        }
+    })
+
+    // 更新子弹、子弹击中目标还原逃生者
+    for(let i=bulletList.length-1;i>=0;i--){
+        const b=bulletList[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.life--;
+        if(b.life<=0 || b.x<0||b.x>W||b.y<0||b.y>H){
+            bulletList.splice(i,1);
+            continue;
+        }
+        // 击中变红玩家
+        if(player.isCaught && hitCheck(b.x,b.y,4,player.x,player.y,player.size)){
+            player.isCaught = false;
+            bulletList.splice(i,1);
+            continue;
+        }
+        // 击中变红AI
+        aiPlayers.forEach(ai=>{
+            if(ai.isCaught && hitCheck(b.x,b.y,4,ai.x,ai.y,ai.size)){
+                ai.isCaught = false;
+                bulletList.splice(i,1);
+            }
+        });
+        // 击中小红狗
+        if(dog.isEvil && hitCheck(b.x,b.y,4,dog.x,dog.y,dog.size)){
+            dog.isEvil = false;
+            bulletList.splice(i,1);
+            continue;
+        }
+        // 击中分身清除
+        for(let j=allHunters.length-1;j>=0;j--){
+            const h = allHunters[j];
+            if(hitCheck(b.x,b.y,4,h.x,h.y,h.size)){
+                allHunters.splice(j,1);
+                bulletList.splice(i,1);
+                break;
+            }
+        }
+    }
+
+    // 小黄狗清除分身、解救人类
+    if (!dog.isEvil) {
+        for (let i = allHunters.length - 1; i >= 0; i--) {
+            const h = allHunters[i];
+            if (hitCheck(dog.x, dog.y, dog.size, h.x, h.y, h.size)) {
+                allHunters.splice(i, 1);
+            }
+        }
+        if (player.isCaught && hitCheck(dog.x, dog.y, dog.size, player.x, player.y, player.size)) {
+            player.isCaught = false;
+        }
+        aiPlayers.forEach(ai => {
+            if (ai.isCaught && hitCheck(dog.x, dog.y, dog.size, ai.x, ai.y, ai.size)) {
+                ai.isCaught = false;
+            }
+        });
+    }
+
+    // 红怪抓到小狗变恶犬
+    getAllHunters().forEach(h => {
+        if (!dog.isEvil && hitCheck(h.x, h.y, h.size, dog.x, dog.y, dog.size)) {
+            dog.isEvil = true;
+        }
+    });
+
+    // 小红狗咬人同化（有保护不生效）
+    if (dog.isEvil) {
+        if (!player.isCaught && player.safeTimer<=0 && hitCheck(dog.x, dog.y, dog.size, player.x, player.y, player.size)) {
+            player.isCaught = true;
+            const newH = {x:player.x,y:player.y,size:player.size+10,speed:1.6,eyeAngle:0};
+            clampEntity(newH);
+            blockRoomForHunter(newH);
+            allHunters.push(newH);
+        }
+        aiPlayers.forEach(ai => {
+            if (!ai.isCaught && ai.safeTimer<=0 && hitCheck(dog.x, dog.y, dog.size, ai.x, ai.y, ai.size)) {
+                ai.isCaught = true;
+                const newH = {x:ai.x,y:ai.y,size:ai.size+10,speed:1.6,eyeAngle:0};
+                clampEntity(newH);
+                blockRoomForHunter(newH);
+                allHunters.push(newH);
+            }
+        });
+    }
+
+    // 所有红怪抓人（房间内无敌免疫）
+    getAllHunters().forEach(hunter => {
+        if (!player.isCaught && player.safeTimer<=0 && hitCheck(hunter.x, hunter.y, hunter.size, player.x, player.y, player.size)) {
+            player.isCaught = true;
+            const newH = {x:player.x,y:player.y,size:player.size+10,speed:1.6,eyeAngle:0};
+            clampEntity(newH);
+            blockRoomForHunter(newH);
+            allHunters.push(newH);
+        }
+        aiPlayers.forEach(ai => {
+            if (!ai.isCaught && ai.safeTimer<=0 && hitCheck(hunter.x, hunter.y, hunter.size, ai.x, ai.y, ai.size)) {
+                ai.isCaught = true;
+                const newH = {x:ai.x,y:ai.y,size:ai.size+10,speed:1.6,eyeAngle:0};
+                clampEntity(newH);
+                blockRoomForHunter(newH);
+                allHunters.push(newH);
+            }
+        });
+    });
+
+    drawRooms();
+    drawTurrets();
+    drawBullets();
+    aiPlayers.forEach(ai => { if (!ai.isCaught) drawHuman(ai.x, ai.y, ai.size, "#2266dd", ai.safeTimer); });
+    if (!player.isCaught) drawHuman(player.x, player.y, player.size, "#222222", player.safeTimer);
+    else drawScaryHunter(player.x, player.y, player.size, 0);
+    drawDog(dog.x, dog.y, dog.size, dog.isEvil);
+    drawScaryHunter(mainStickMan.x, mainStickMan.y, mainStickMan.size, mainStickMan.eyeAngle);
+    allHunters.forEach((h, idx) => drawScaryHunter(h.x, h.y, h.size, idx * 0.3));
+
+    const caughtNum = countCaughtTotal();
+    const aliveNum = 4 - caughtNum;
+
+    // 全员被抓判定：抓捕方胜利
+    if (caughtNum >= 4) {
+        gameRunning = false;
+        clearInterval(scoreTimer);
+        alert(`游戏结束！抓捕者胜利，玩家失败！\n所有人全部被抓住，本局分数：${score}`);
+        startBtn.style.display = "block";
+        return;
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+startBtn.onclick = function () {
+    gameRunning = true;
+    score = 0;
+    cloneTimer = 0;
+    frameCount=0;
+    bulletList=[];
+    scoreText.innerText = score;
+
+    player.x = 340;
+    player.y = 210;
+    player.isCaught = false;
+    player.safeTimer = 0;
+    clampEntity(player);
+
+    aiPlayers = [
+        { x: 100, y: 100, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 },
+        { x: 580, y: 90, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 },
+        { x: 120, y: 330, size: 22, speed: 5, dx: 0, dy: 0, changeTimer: 0, isCaught: false, safeTimer:0 }
+    ];
+    aiPlayers.forEach(a => {
+        refreshAIDir(a);
+        clampEntity(a);
+    });
+
+    mainStickMan.x = 60;
+    mainStickMan.y = 60;
+    clampEntity(mainStickMan);
+    blockRoomForHunter(mainStickMan);
+    allHunters = [];
+
+    // 重置房间炮台计时
+    rooms.forEach(r=>{
+        r.stayTimer=0;
+        r.hasTurret=false;
+    })
+    turrets.forEach(t=>t.fireCd=0);
+
+    dog.x = 450;
+    dog.y = 300;
+    dog.isEvil = false;
+    refreshDogDir();
+    clampEntity(dog);
+
+    startBtn.style.display = "none";
+    scoreTimer = setInterval(() => {
+        score += 1;
+        scoreText.innerText = score;
+    }, 1000);
+    gameLoop();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

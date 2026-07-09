@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>狼人杀知识闯关小游戏</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#222738;font-family:"微软雅黑";padding:40px;}
+        .game-box{max-width:660px;margin:0 auto;background:#121625;padding:35px;border-radius:20px;box-shadow:0 0 18px #662233;}
+        .title{font-size:32px;color:#ff4455;text-align:center;font-weight:bold;margin-bottom:20px;}
+        .score-text{font-size:22px;color:#ffcc66;text-align:center;margin-bottom:15px;}
+        .q-content{font-size:26px;color:#eeeeee;text-align:center;margin:30px 0;line-height:1.6;min-height:80px;}
+        .btn-wrap{text-align:center;margin:20px 0;}
+        .opt-btn{display:inline-block;padding:12px 25px;margin:8px;border:none;border-radius:10px;background:#aa2233;color:#fff;font-size:20px;cursor:pointer;transition:0.2s;}
+        .opt-btn:hover{background:#dd3344;transform:scale(1.03);}
+        .opt-btn:disabled{background:#555;cursor:not-allowed;transform:none;}
+        .next-btn{padding:10px 25px;font-size:20px;background:#229966;border:none;color:#fff;border-radius:8px;cursor:pointer;margin-top:10px;}
+        .next-btn:disabled{background:#444;cursor:not-allowed;}
+        .msg{font-size:22px;font-weight:bold;margin-top:20px;text-align:center;}
+        .right{color:#39ff77;}
+        .wrong{color:#ff5566;}
+        .tip-text{font-size:18px;color:#bbbbbb;margin-top:10px;text-align:center;line-height:1.6;}
+
+        /* 启动首页 */
+        .start-page{text-align:center;padding:60px 10px;}
+        .desc{font-size:20px;color:#cccccc;margin:30px 0;line-height:1.8;}
+        .start-btn{padding:14px 42px;font-size:24px;background:#dd3344;color:#fff;border:none;border-radius:12px;cursor:pointer;}
+        .start-btn:hover{background:#bb2233;}
+        .game-main{display:none;}
+    </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="game-box">
+    <!-- 开局启动界面 -->
+    <div class="start-page" id="startBox">
+        <div class="title">狼人杀知识闯关</div>
+        <div class="desc">
+            学习狼人杀基础角色、规则玩法<br>
+            答对题目积累分数，精通狼人杀逻辑！
+        </div>
+        <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <!-- 答题主界面 -->
+    <div class="game-main" id="gameBox">
+        <div class="score-text">当前得分：<span id="score">0</span> 分</div>
+        <div class="q-content" id="question">加载狼人杀题目...</div>
+        <div class="btn-wrap" id="btnBox"></div>
+        <div class="msg" id="msgBox"></div>
+        <div class="tip-text" id="tipBox"></div>
+        <div style="text-align:center;margin-top:25px;">
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>下一题</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let score = 0;
+let index = 0;
+
+// 狼人杀基础规则题库
+let questions = [
+    {
+        q:"狼人杀夜晚谁最先行动？",
+        opts:["平民","狼人","预言家"],
+        right:1,
+        tip:"每轮夜晚最先由狼人行动，刀掉一名玩家。"
+    },
+    {
+        q:"预言家每晚可以做什么？",
+        opts:["查验一名玩家身份","杀死玩家","救活玩家"],
+        right:0,
+        tip:"预言家每晚查验一人，得知对方是好人或狼人。"
+    },
+    {
+        q:"女巫拥有几瓶药水？",
+        opts:["1瓶","2瓶","3瓶"],
+        right:1,
+        tip:"女巫有解药和毒药各一瓶，解药救人，毒药毒人。"
+    },
+    {
+        q:"不能夜晚行动的身份是？",
+        opts:["平民","狼人","女巫"],
+        right:0,
+        tip:"平民没有夜间技能，只能白天发言投票。"
+    },
+    {
+        q:"猎人被狼人刀死或投票出局可以？",
+        opts:["救活自己","开枪带走一人","查验别人"],
+        right:1,
+        tip:"猎人出局能开枪带走场上任意一名玩家。"
+    },
+    {
+        q:"白天通过什么方式放逐玩家？",
+        opts:["投票","夜晚刀人","女巫毒药"],
+        right:0,
+        tip:"白天全部玩家发言后，投票选出怀疑的狼人放逐。"
+    },
+    {
+        q:"狼人胜利条件是？",
+        opts:["杀光所有平民","好人人数≤狼人","查验所有好人"],
+        right:1,
+        tip:"场上好人数量与狼人持平或更少，狼人直接获胜。"
+    },
+    {
+        q:"好人阵营不包含以下哪个？",
+        opts:["预言家","狼人","猎人"],
+        right:1,
+        tip:"狼人属于反派阵营，预言家、猎人为好人阵营。"
+    },
+    {
+        q:"守卫每晚技能是？",
+        opts:["守护一名玩家","杀人","查验身份"],
+        right:0,
+        tip:"守卫夜晚守护一人，该玩家当晚不会被狼人杀害。"
+    },
+    {
+        q:"被女巫解药救起来的玩家白天能否投票？",
+        opts:["不能","可以","直接出局"],
+        right:1,
+        tip:"解药救活玩家仅免疫当晚刀伤，白天正常参与发言投票。"
+    },
+    {
+        q:"狼人夜晚可以刀自己吗？",
+        opts:["可以","不可以","只能刀平民"],
+        right:0,
+        tip:"狼人能自刀，骗女巫解药，制造好人假象。"
+    },
+    {
+        q:"白天投票最高票数的玩家会？",
+        opts:["直接获胜","被放逐出局","获得解药"],
+        right:1,
+        tip:"得票最高玩家被公投放逐，直接离开本局游戏。"
+    }
+];
+
+// 点击开始游戏切换答题页面
+function startGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    showQuestion();
+}
+
+// 渲染题目
+function showQuestion(){
+    let q = questions[index];
+    document.getElementById("question").innerText = q.q;
+    document.getElementById("msgBox").innerText = "";
+    document.getElementById("tipBox").innerText = "";
+    document.getElementById("btnBox").innerHTML = "";
+    // 新题目锁定下一题按钮
+    document.getElementById("nextBtn").disabled = true;
+
+    for(let i=0;i<q.opts.length;i++){
+        let btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.innerText = q.opts[i];
+        btn.onclick = function(){ checkAnswer(i); }
+        document.getElementById("btnBox").appendChild(btn);
+    }
+}
+
+// 选择答案，锁定全部选项
+function checkAnswer(num){
+    let q = questions[index];
+    let msg = document.getElementById("msgBox");
+    let tip = document.getElementById("tipBox");
+    let allBtn = document.querySelectorAll(".opt-btn");
+    // 全部选项禁用，不可重复选择
+    allBtn.forEach(b=>b.disabled=true);
+
+    if(num === q.right){
+        score += 10;
+        document.getElementById("score").innerText = score;
+        msg.innerText = "✅ 回答正确！";
+        msg.className = "msg right";
+    }else{
+        msg.innerText = "❌ 答错，正确答案："+q.opts[q.right];
+        msg.className = "msg wrong";
+    }
+    tip.innerText = "规则小知识："+q.tip;
+    // 解锁下一题
+    document.getElementById("nextBtn").disabled = false;
+}
+
+// 切换下一题，通关结算
+function nextQuestion(){
+    index++;
+    if(index >= questions.length){
+        let judge = "";
+        if(score >= 100) judge = "🏆 狼人杀大神！规则完全吃透！";
+        else if(score >=70) judge = "👍 熟悉基础规则，再多玩几局！";
+        else judge = "📖 基础规则还需多看，练习一下吧！";
+        alert(`闯关全部结束！
+总得分：${score} 分（满分120分）
+${judge}`);
+        index = 0;
+        score = 0;
+        document.getElementById("score").innerText = 0;
+    }
+    showQuestion();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

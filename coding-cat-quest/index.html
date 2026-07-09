@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>编程猫入门闯关小游戏</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#f0f8ff;font-family:"微软雅黑";padding:40px;}
+        .game-box{max-width:650px;margin:0 auto;background:#fff;padding:35px;border-radius:20px;box-shadow:0 0 15px #cce4f6;}
+        .title{font-size:32px;color:#ff7820;text-align:center;font-weight:bold;margin-bottom:20px;}
+        .score-text{font-size:22px;color:#ff6600;text-align:center;margin-bottom:15px;}
+        .q-content{font-size:26px;color:#333;text-align:center;margin:30px 0;line-height:1.6;min-height:80px;}
+        .btn-wrap{text-align:center;margin:20px 0;}
+        .opt-btn{display:inline-block;padding:12px 25px;margin:8px;border:none;border-radius:10px;background:#ff9547;color:#fff;font-size:20px;cursor:pointer;transition:0.2s;}
+        .opt-btn:hover{background:#ff7820;transform:scale(1.03);}
+        .opt-btn:disabled{background:#cccccc;cursor:not-allowed;transform:none;}
+        .next-btn{padding:10px 25px;font-size:20px;background:#36cfa2;border:none;color:#fff;border-radius:8px;cursor:pointer;margin-top:10px;}
+        .next-btn:disabled{background:#aaaaaa;cursor:not-allowed;transform:none;}
+        .msg{font-size:22px;font-weight:bold;margin-top:20px;text-align:center;}
+        .right{color:green;}
+        .wrong{color:red;}
+        .tip-text{font-size:18px;color:#666;margin-top:10px;text-align:center;}
+
+        /* 启动首页样式 */
+        .start-page{text-align:center;padding:50px 10px;}
+        .desc{font-size:20px;color:#555;margin:30px 0;line-height:1.8;}
+        .start-btn{padding:14px 42px;font-size:24px;background:#ff7820;color:#fff;border:none;border-radius:12px;cursor:pointer;}
+        .start-btn:hover{background:#e06710;}
+        /* 答题区域默认隐藏 */
+        .game-main{display:none;}
+    </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="game-box">
+    <!-- 初始开始界面 -->
+    <div class="start-page" id="startBox">
+        <div class="title">编程猫知识闯关大挑战</div>
+        <div class="desc">
+            专为编程猫初学者设计<br>
+            学习积木、舞台、循环、运动等编程基础知识<br>
+            答对题目获得分数，争做编程小达人！
+        </div>
+        <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <!-- 答题区域（默认隐藏） -->
+    <div class="game-main" id="gameBox">
+        <div class="score-text">当前得分：<span id="score">0</span> 分</div>
+        <div class="q-content" id="question">正在加载编程知识题目...</div>
+        <div class="btn-wrap" id="btnBox"></div>
+        <div class="msg" id="msgBox"></div>
+        <div class="tip-text" id="tipBox"></div>
+        <div style="text-align:center;margin-top:25px;">
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>下一题</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let score = 0;
+let index = 0;
+
+// 完整版30道编程猫入门题库
+let questions = [
+    // 基础操作
+    {q:"编程猫创作的作品，最终需要点击哪个按钮运行？",opts:["保存","运行/开始","删除"],right:1,tip:"所有编程作品，都需要点击运行按钮才能看到效果！"},
+    {q:"舞台区的作用是？",opts:["写代码","展示动画和作品效果","存放积木"],right:1,tip:"舞台是作品的展示窗口，角色动画都会在这里呈现"},
+    {q:"新建作品后，首先要保存作品的主要原因是？",opts:["好看","防止作品丢失","自动运行"],right:1,tip:"编程创作一定要勤保存，避免作品意外丢失"},
+    {q:"编程猫积木区的作用是？",opts:["展示动画","拖拽拼接代码","播放音乐"],right:1,tip:"所有程序都是通过拖拽积木区的积木拼接完成的"},
+    {q:"想要添加新角色，需要点击哪个功能？",opts:["添加角色","保存作品","清空舞台"],right:0,tip:"添加角色可以让舞台出现更多动画人物"},
+
+    // 运动积木
+    {q:"想要让角色移动，应该使用哪类积木？",opts:["运动积木","外观积木","声音积木"],right:0,tip:"运动类积木专门控制角色移动、旋转、跳跃"},
+    {q:"想要角色碰到边缘就反弹，属于什么功能？",opts:["运动功能","声音功能","绘图功能"],right:0,tip:"碰到边缘反弹是经典的运动积木用法"},
+    {q:"让角色向右移动10步，属于哪类指令？",opts:["外观指令","运动指令","控制指令"],right:1,tip:"上下左右移动全部属于运动积木"},
+    {q:"让角色顺时针旋转，用什么积木？",opts:["运动积木","变量积木","声音积木"],right:0,tip:"旋转、移动、滑动都属于运动类"},
+    {q:"以下哪个不能让角色动起来？",opts:["移动10步","旋转15度","改变颜色特效"],right:2,tip:"改变颜色属于外观，不会移动角色"},
+
+    // 外观积木
+    {q:"想让角色改变颜色、变大变小，用什么积木？",opts:["控制积木","外观积木","变量积木"],right:1,tip:"外观积木可以改变角色大小、颜色、造型、特效"},
+    {q:"想让角色隐藏、显示，用哪类积木？",opts:["外观积木","运动积木","判断积木"],right:0,tip:"隐藏、显示、切换造型都属于外观功能"},
+    {q:"想要更换角色造型，需要用到？",opts:["声音积木","外观积木","循环积木"],right:1,tip:"切换造型可以做出人物走路动画"},
+    {q:"让角色变大10%，属于什么功能？",opts:["运动","外观","数据"],right:1,tip:"调整大小是典型的外观积木"},
+    {q:"以下哪个属于外观积木？",opts:["等待1秒","换成新造型","移动5步"],right:1,tip:"造型切换、颜色变化都是外观类"},
+
+    // 声音积木
+    {q:"想让角色发出声音、播放音乐，用哪类积木？",opts:["声音积木","运动积木","判断积木"],right:0,tip:"紫色声音积木，专门负责播放音效、背景音乐"},
+    {q:"想要停止所有音效，需要用？",opts:["停止声音积木","清空积木","隐藏角色"],right:0,tip:"声音积木可以播放、暂停、停止音乐"},
+    {q:"播放鼓点音乐属于哪类积木？",opts:["声音","控制","运动"],right:0,tip:"所有音乐、音效都归属于声音积木"},
+
+    // 控制积木（重点）
+    {q:"重复执行指令，需要用到哪个积木？",opts:["如果那么","重复执行","等待"],right:1,tip:"重复执行是循环积木，能让动作一直重复，不用重复写代码"},
+    {q:"编程猫中“等待1秒”积木的作用是？",opts:["暂停1秒","删除角色","移动角色"],right:0,tip:"等待积木可以让动作变慢，让动画更流畅"},
+    {q:"编程积木颜色分类中，控制积木是什么颜色？",opts:["蓝色","黄色","绿色"],right:1,tip:"编程猫黄色积木为控制类，负责循环、判断、等待"},
+    {q:"想要满足条件才执行动作，用哪个积木？",opts:["如果那么","重复执行","移动"],right:0,tip:"如果那么是条件判断积木，是智能编程的基础"},
+    {q:"想要程序一直无限循环，用？",opts:["重复执行10次","重复执行","等待循环"],right:1,tip:"不带次数的重复执行就是无限循环"},
+
+    // 判断与逻辑
+    {q:"碰到角色就消失，需要用到？",opts:["条件判断积木","声音积木","外观积木"],right:0,tip:"侦测+如果判断可以实现智能互动"},
+    {q:"按下空格键角色跳跃，属于？",opts:["按键触发程序","自动程序","声音程序"],right:0,tip:"按键触发是最常用的交互编程"},
+
+    // 编程思维科普
+    {q:"编程的本质是？",opts:["画画","写指令让电脑执行","玩游戏"],right:1,tip:"编程就是把想法变成电脑能听懂的指令"},
+    {q:"积木编程的优点是？",opts:["很难看懂","简单直观、零基础易学","需要背代码"],right:1,tip:"积木拖拽式编程专门适合小朋友入门"},
+    {q:"想要程序按顺序一步步执行，这叫？",opts:["顺序结构","乱序结构","跳跃结构"],right:0,tip:"从上到下依次执行就是顺序编程"},
+    {q:"调试程序的意思是？",opts:["删除作品","查找并修改bug","保存作品"],right:1,tip:"修改错误、优化程序叫做调试"},
+    {q:"制作动画游戏的正确步骤是？",opts:["先编程再构思","先构思再编程","直接随便拼"],right:1,tip:"先想好思路，再写代码，是优秀程序员的习惯"}
+];
+
+// 点击开始游戏，切换到答题页面
+function startGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    showQuestion();
+}
+
+// 渲染题目
+function showQuestion(){
+    let q = questions[index];
+    document.getElementById("question").innerText = q.q;
+    document.getElementById("msgBox").innerText = "";
+    document.getElementById("tipBox").innerText = "";
+    document.getElementById("btnBox").innerHTML = "";
+    // 切换题目立刻禁用下一题
+    document.getElementById("nextBtn").disabled = true;
+
+    for(let i=0;i<q.opts.length;i++){
+        let btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.innerText = q.opts[i];
+        btn.onclick = function(){ checkAnswer(i); }
+        document.getElementById("btnBox").appendChild(btn);
+    }
+}
+
+// 判断对错+知识点讲解
+function checkAnswer(num){
+    let q = questions[index];
+    let msg = document.getElementById("msgBox");
+    let tip = document.getElementById("tipBox");
+    let allBtns = document.querySelectorAll(".opt-btn");
+    // 全部选项按钮锁定，不能重复点击
+    allBtns.forEach(btn => {
+        btn.disabled = true;
+    });
+
+    if(num === q.right){
+        score += 10;
+        document.getElementById("score").innerText = score;
+        msg.innerText = "✅ 答对啦！掌握超棒！";
+        msg.className = "msg right";
+    }else{
+        msg.innerText = "❌ 答错啦！正确答案：" + q.opts[q.right];
+        msg.className = "msg wrong";
+    }
+    tip.innerText = "💡知识点：" + q.tip;
+    // 选择答案后解锁下一题
+    document.getElementById("nextBtn").disabled = false;
+}
+
+// 下一题、通关结算
+function nextQuestion(){
+    index++;
+    if(index >= questions.length){
+        let grade = "";
+        if(score >= 270) grade = "🏆 编程小天才！完全精通编程猫基础！";
+        else if(score >= 210) grade = "🥳 非常优秀！编程基础非常扎实！";
+        else if(score >= 150) grade = "👍 合格！继续练习更厉害！";
+        else grade = "💪 继续学习，很快就能掌握编程猫！";
+        alert("🎉 编程猫全套闯关完成！\n总分："+score+" 分（满分300分）\n"+grade);
+        index = 0;
+        score = 0;
+        document.getElementById("score").innerText = 0;
+    }
+    showQuestion();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

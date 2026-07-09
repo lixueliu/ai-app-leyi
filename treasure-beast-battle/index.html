@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>大中华寻宝记神兽对战小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{background:#fff3e0;padding:40px;}
+.wrap{max-width:720px;margin:0 auto;background:#fff;padding:35px;border-radius:20px;box-shadow:0 0 15px #ffbc70;}
+.title{font-size:34px;color:#e63923;text-align:center;font-weight:bold;margin-bottom:25px;}
+.text{font-size:22px;color:#444;text-align:center;line-height:1.8;margin:20px 0;}
+.btn{display:block;margin:20px auto;padding:14px 42px;font-size:24px;border:none;border-radius:12px;cursor:pointer;}
+.start-btn{background:#e63923;color:#fff;}
+.start-btn:hover{background:#c02c1b;}
+.shenshou-box{display:flex;flex-wrap:wrap;gap:15px;justify-content:center;margin:30px 0;}
+.shenshou-btn{width:160px;padding:12px;font-size:20px;background:#2986cc;color:#fff;border:none;border-radius:10px;cursor:pointer;}
+.shenshou-btn:hover{background:#1f6ea8;}
+.confirm-btn{margin-top:30px;background:#22aa55;color:#fff;}
+.confirm-btn:disabled{background:#999;cursor:not-allowed;}
+
+/* 战场对战页面 */
+.battle-area{display:none;margin-top:20px;}
+.battle-row{display:flex;justify-content:space-around;margin:40px 0;}
+.my-card,.enemy-card{width:280px;padding:20px;border-radius:14px;text-align:center;}
+.my-card{background:#cce5ff;border:2px solid #2986cc;}
+.enemy-card{background:#ffdddd;border:2px solid #dd3333;}
+.shenshou-name{font-size:28px;font-weight:bold;margin-bottom:12px;}
+.rock-box{display:flex;gap:12px;justify-content:center;margin:30px 0;}
+.rock-btn{padding:12px 26px;font-size:22px;background:#884422;color:#fff;border:none;border-radius:10px;cursor:pointer;}
+.rock-btn:hover{background:#663311;}
+.rock-btn:disabled{background:#aaaaaa;cursor:not-allowed;}
+.result-text{text-align:center;font-size:26px;font-weight:bold;margin-top:25px;min-height:35px;}
+.win{color:#22aa55;}
+.lose{color:#dd3333;}
+.draw{color:#ff9900;}
+.count-tip{text-align:center;font-size:22px;color:#666;margin-top:8px;}
+#gameOverBox{display:none;text-align:center;margin-top:40px;}
+.over-title{font-size:36px;color:#e63923;font-weight:bold;margin-bottom:20px;}
+.score-text{font-size:26px;margin:10px 0;}
+.my-win{color:#22aa55;}
+.enemy-win{color:#dd3333;}
+.all-draw{color:#ff9900;}
+#startPage{text-align:center;}
+#selectPage{display:none;text-align:center;}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="wrap">
+    <!-- 初始启动页 -->
+    <div id="startPage">
+        <div class="title">大中华寻宝记神兽对战</div>
+        <div class="text">
+            挑选专属神兽，进入战场和敌方神兽石头剪刀布对战<br>
+            对战满3回合结算总分，判定最终胜负
+        </div>
+        <button class="btn start-btn" onclick="openGame()">开始游戏</button>
+    </div>
+
+    <!-- 神兽选择页面 -->
+    <div id="selectPage">
+        <div class="title">选择你的出战神兽</div>
+        <div class="shenshou-box" id="box">
+            <button class="shenshou-btn" onclick="pickShenshou('顶呱呱')">顶呱呱</button>
+            <button class="shenshou-btn" onclick="pickShenshou('亮晶晶')">亮晶晶</button>
+            <button class="shenshou-btn" onclick="pickShenshou('火辣辣')">火辣辣</button>
+            <button class="shenshou-btn" onclick="pickShenshou('慢吞吞')">慢吞吞</button>
+            <button class="shenshou-btn" onclick="pickShenshou('红通通')">红通通</button>
+            <button class="shenshou-btn" onclick="pickShenshou('水当当')">水当当</button>
+        </div>
+        <button class="btn confirm-btn" id="confirmBtn" onclick="goBattle()" disabled>选择好了，进入战场</button>
+    </div>
+
+    <!-- 战场对战界面 -->
+    <div class="battle-area" id="battlePage">
+        <div class="title">神兽对战战场</div>
+        <div class="battle-row">
+            <div class="my-card">
+                <div class="shenshou-name">我方神兽</div>
+                <div id="myNameText" style="font-size:24px;"></div>
+            </div>
+            <div class="enemy-card">
+                <div class="shenshou-name">敌方神兽</div>
+                <div id="enemyNameText" style="font-size:24px;"></div>
+            </div>
+        </div>
+        <div class="count-tip" id="roundTip">剩余对战次数：3</div>
+        <div style="text-align:center;font-size:22px;margin:10px 0;">出拳对战：石头 / 剪刀 / 布</div>
+        <div class="rock-box">
+            <button class="rock-btn" id="btnRock" onclick="fight('石头')">石头</button>
+            <button class="rock-btn" id="btnScissors" onclick="fight('剪刀')">剪刀</button>
+            <button class="rock-btn" id="btnPaper" onclick="fight('布')">布</button>
+        </div>
+        <div class="result-text" id="fightResult"></div>
+    </div>
+
+    <!-- 游戏结束结算页面 -->
+    <div id="gameOverBox">
+        <div class="over-title">3回合对战完毕</div>
+        <div class="score-text" id="scoreInfo"></div>
+        <div class="score-text" id="finalResult"></div>
+    </div>
+</div>
+
+<script>
+// 全部神兽列表
+const allShenshou = ["顶呱呱","亮晶晶","火辣辣","慢吞吞","红通通","水当当"];
+let myShenshou = "";
+let enemyShenshou = "";
+let fightRound = 3;
+let myWinCount = 0;
+let enemyWinCount = 0;
+
+// 打开选神兽页面
+function openGame(){
+    document.getElementById("startPage").style.display = "none";
+    document.getElementById("selectPage").style.display = "block";
+    myShenshou = "";
+    fightRound = 3;
+    myWinCount = 0;
+    enemyWinCount = 0;
+    document.getElementById("confirmBtn").disabled = true;
+    document.getElementById("battlePage").style.display = "none";
+    document.getElementById("gameOverBox").style.display = "none";
+}
+
+// 选择神兽，解锁确认按钮
+function pickShenshou(name){
+    myShenshou = name;
+    document.getElementById("confirmBtn").disabled = false;
+}
+
+// 进入战场，随机生成敌方神兽
+function goBattle(){
+    let randomIdx = Math.floor(Math.random() * allShenshou.length);
+    enemyShenshou = allShenshou[randomIdx];
+
+    document.getElementById("selectPage").style.display = "none";
+    document.getElementById("battlePage").style.display = "block";
+    document.getElementById("myNameText").innerText = myShenshou;
+    document.getElementById("enemyNameText").innerText = enemyShenshou;
+    document.getElementById("fightResult").innerText = "";
+    document.getElementById("roundTip").innerText = `剩余对战次数：${fightRound}`;
+    document.getElementById("btnRock").disabled = false;
+    document.getElementById("btnScissors").disabled = false;
+    document.getElementById("btnPaper").disabled = false;
+}
+
+// 石头剪刀布对战逻辑
+function fight(myRock){
+    if(fightRound <= 0) return;
+    let rockList = ["石头","剪刀","布"];
+    let enemyRock = rockList[Math.floor(Math.random() * 3)];
+    let result = "";
+    let cls = "";
+
+    if(myRock === enemyRock){
+        result = `你出${myRock}，敌方神兽${enemyShenshou}出${enemyRock}，平局！`;
+        cls = "draw";
+    }else if(
+        (myRock === "石头" && enemyRock === "剪刀") ||
+        (myRock === "剪刀" && enemyRock === "布") ||
+        (myRock === "布" && enemyRock === "石头")
+    ){
+        result = `你出${myRock}克制敌方${enemyRock}！${myShenshou}战胜${enemyShenshou}，胜利！`;
+        cls = "win";
+        myWinCount++;
+    }else{
+        result = `敌方${enemyRock}克制你的${myRock}！${myShenshou}输给${enemyShenshou}，失败！`;
+        cls = "lose";
+        enemyWinCount++;
+    }
+
+    let resDom = document.getElementById("fightResult");
+    resDom.innerText = result;
+    resDom.className = "result-text " + cls;
+
+    fightRound--;
+    document.getElementById("roundTip").innerText = `剩余对战次数：${fightRound}`;
+
+    if(fightRound <= 0){
+        document.getElementById("btnRock").disabled = true;
+        document.getElementById("btnScissors").disabled = true;
+        document.getElementById("btnPaper").disabled = true;
+        setTimeout(()=>{
+            document.getElementById("battlePage").style.display = "none";
+            document.getElementById("gameOverBox").style.display = "block";
+            document.getElementById("scoreInfo").innerText = `我方胜利场次：${myWinCount} ｜ 敌方胜利场次：${enemyWinCount}`;
+            let finalText = "";
+            let textClass = "";
+            if(myWinCount > enemyWinCount){
+                finalText = `最终胜利：${myShenshou}！`;
+                textClass = "my-win";
+            }else if(enemyWinCount > myWinCount){
+                finalText = `最终胜利：${enemyShenshou}！`;
+                textClass = "enemy-win";
+            }else{
+                finalText = `双方胜场相同，全场平局！`;
+                textClass = "all-draw";
+            }
+            let finalDom = document.getElementById("finalResult");
+            finalDom.innerText = finalText;
+            finalDom.className = "score-text " + textClass;
+        },1200);
+    }
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

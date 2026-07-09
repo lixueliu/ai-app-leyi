@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>二年级下册唐诗闯关小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑";
+        }
+        body {
+            background: #fff8e6;
+            padding: 40px;
+        }
+        .game-card {
+            width: 660px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 12px #ffdd99;
+        }
+        .title {
+            font-size: 32px;
+            color: #c83c23;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+        .score-box {
+            font-size: 22px;
+            text-align: center;
+            color: #e67700;
+            margin-bottom: 20px;
+        }
+        .question-area {
+            font-size: 26px;
+            text-align: center;
+            line-height: 1.7;
+            min-height: 90px;
+            color: #222;
+            margin: 30px 0;
+        }
+        .btn-group {
+            text-align: center;
+        }
+        .answer-btn {
+            padding: 12px 26px;
+            margin: 9px;
+            border: none;
+            border-radius: 10px;
+            background: #e68c30;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .answer-btn:hover {
+            background: #c83c23;
+        }
+        .next-btn {
+            margin-top: 20px;
+            padding: 10px 28px;
+            font-size: 20px;
+            background: #28a745;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .msg {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 22px;
+            text-align: center;
+        }
+        .right-text {
+            color: green;
+        }
+        .wrong-text {
+            color: red;
+        }
+        .poem-tip {
+            margin-top: 12px;
+            font-size: 18px;
+            color: #666;
+            text-align: center;
+            line-height: 1.6;
+        }
+        /* 启动封面样式 */
+        .start-page{
+            text-align:center;
+            padding:60px 20px;
+        }
+        .start-desc{
+            font-size:20px;
+            color:#555;
+            margin:30px 0;
+            line-height:1.8;
+        }
+        .start-btn{
+            padding:15px 40px;
+            font-size:24px;
+            background:#c83c23;
+            color:#fff;
+            border:none;
+            border-radius:12px;
+            cursor:pointer;
+        }
+        .start-btn:hover{
+            background:#a02e1b;
+        }
+        /* 默认隐藏答题区域 */
+        .game-content{
+            display:none;
+        }
+    </style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="game-card">
+    <!-- 初始启动页面 -->
+    <div class="start-page" id="startBox">
+        <div class="title">唐诗闯关小书生</div>
+        <div class="start-desc">
+            二年级下册必背唐诗答题游戏<br>
+            答题积累诗词知识，争做诗词小才子！
+        </div>
+        <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <!-- 答题内容区域，初始隐藏 -->
+    <div class="game-content" id="gameBox">
+        <div class="score-box">当前得分：<span id="score">0</span> 分</div>
+        <div class="question-area" id="qText">加载唐诗题目……</div>
+        <div class="btn-group" id="btnBox"></div>
+        <div class="msg" id="msgBox"></div>
+        <div class="poem-tip" id="tips"></div>
+        <div style="text-align:center">
+            <button class="next-btn" onclick="nextQuestion()">下一题</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let score = 0;
+let index = 0;
+// 二年级课内必背唐诗题库
+let poemList = [
+    {
+        q: "《咏柳》的作者是谁？",
+        opts: ["李白", "贺知章", "杜甫"],
+        right: 1,
+        tip: "碧玉妆成一树高，万条垂下绿丝绦。贺知章描写春天柳树。"
+    },
+    {
+        q: "“举头望明月”下一句是？",
+        opts: ["低头思故乡", "春风送暖入屠苏", "处处闻啼鸟"],
+        right: 0,
+        tip: "出自李白《静夜思》，思乡经典古诗。"
+    },
+    {
+        q: "《登鹳雀楼》中，鼓励人不断向上的句子是？",
+        opts: ["春眠不觉晓", "更上一层楼", "黄河入海流"],
+        right: 1,
+        tip: "欲穷千里目，更上一层楼，告诉我们要努力向上。"
+    },
+    {
+        q: "“春眠不觉晓”出自哪首诗？",
+        opts: ["春晓", "咏鹅", "村居"],
+        right: 0,
+        tip: "孟浩然《春晓》：春眠不觉晓，处处闻啼鸟。"
+    },
+    {
+        q: "“飞流直下三千尺”描写的景物是？",
+        opts: ["黄河", "庐山瀑布", "长江"],
+        right: 1,
+        tip: "《望庐山瀑布》，写出瀑布雄伟壮观。"
+    },
+    {
+        q: "“二月春风似剪刀”上一句是？",
+        opts: ["不知细叶谁裁出", "春风又绿江南岸", "春风送暖入屠苏"],
+        right: 0,
+        tip: "贺知章《咏柳》，把春风比作剪刀裁剪柳叶。"
+    },
+    {
+        q: "“两个黄鹂鸣翠柳”的作者是？",
+        opts: ["李白", "杜甫", "白居易"],
+        right: 1,
+        tip: "杜甫绝句，四句诗描绘四幅优美风景画。"
+    },
+    {
+        q: "“四海无闲田，农夫犹饿死”作者是？",
+        opts: ["李绅", "李白", "杜牧"],
+        right: 0,
+        tip: "李绅《悯农》，教育我们珍惜粮食，不要浪费。"
+    },
+    {
+        q: "“独在异乡为异客”是谁的作品？",
+        opts: ["王维", "李白", "孟浩然"],
+        right: 0,
+        tip: "王维《九月九日忆山东兄弟》，重阳节思念远方亲人。"
+    },
+    {
+        q: "“野火烧不尽”下一句是？",
+        opts: ["春风吹又生", "一岁一枯荣", "远芳侵古道"],
+        right: 0,
+        tip: "白居易《赋得古原草送别》，赞美小草顽强的生命力。"
+    },
+    {
+        q: "“儿童相见不相识，笑问客从何处来”作者？",
+        opts: ["贺知章", "李白", "柳宗元"],
+        right: 0,
+        tip: "《回乡偶书》，诗人年老归乡，孩童不认识自己。"
+    },
+    {
+        q: "《悯农》“锄禾日当午”下一句？",
+        opts: ["粒粒皆辛苦", "汗滴禾下土", "秋收万颗子"],
+        right: 1,
+        tip: "正午烈日锄地，农民种地十分辛苦。"
+    }
+];
+
+// 点击开始游戏切换页面
+function startGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    showQuestion();
+}
+
+// 渲染题目
+function showQuestion() {
+    let data = poemList[index];
+    document.getElementById("qText").innerText = data.q;
+    document.getElementById("msgBox").innerText = "";
+    document.getElementById("tips").innerText = "";
+    document.getElementById("btnBox").innerHTML = "";
+
+    for (let i = 0; i < data.opts.length; i++) {
+        let btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.innerText = data.opts[i];
+        btn.onclick = () => checkAnswer(i);
+        document.getElementById("btnBox").appendChild(btn);
+    }
+}
+
+// 判断答案对错
+function checkAnswer(clickNum) {
+    let data = poemList[index];
+    let msgDom = document.getElementById("msgBox");
+    let tipDom = document.getElementById("tips");
+    if (clickNum === data.right) {
+        score += 10;
+        document.getElementById("score").innerText = score;
+        msgDom.innerText = "✅ 答对！积累诗词小知识！";
+        msgDom.className = "msg right-text";
+    } else {
+        msgDom.innerText = "❌ 答错啦，正确答案：" + data.opts[data.right];
+        msgDom.className = "msg wrong-text";
+    }
+    tipDom.innerText = "诗词小科普：" + data.tip;
+}
+
+// 下一题逻辑
+function nextQuestion() {
+    index++;
+    if (index >= poemList.length) {
+        let evaluate = "";
+        if (score >= 100) evaluate = "🏆 诗词小才子！唐诗掌握得非常熟练！";
+        else if (score >= 70) evaluate = "👍 很不错，再多背诵几首古诗会更厉害！";
+        else evaluate = "📖 要多朗读背诵唐诗，积累更多古诗词哦！";
+        alert(`诗词闯关全部完成！
+总分：${score} 分（满分120分）
+${evaluate}`);
+        index = 0;
+        score = 0;
+        document.getElementById("score").innerText = 0;
+    }
+    showQuestion();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

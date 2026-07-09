@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>侦探推理小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{background:#12151f;padding:45px;}
+.box{max-width:680px;margin:0 auto;background:#1a1f2e;padding:40px;border-radius:20px;box-shadow:0 0 18px #254066;}
+.title{font-size:33px;color:#70b8ff;text-align:center;font-weight:bold;margin-bottom:25px;position:relative;}
+.desc-text{font-size:21px;color:#dddddd;text-align:center;line-height:1.7;margin:20px 0;}
+.area{margin:30px 0;padding:22px;border:1px solid #334466;border-radius:14px;}
+.area h3{font-size:24px;color:#94c8ff;margin-bottom:15px;}
+.clue{color:#eee;font-size:19px;line-height:1.7;margin:8px 0;}
+.question{font-size:22px;color:#ffedb3;margin:20px 0;text-align:center;}
+.input-box{display:block;width:90%;margin:15px auto;padding:12px;font-size:20px;border-radius:8px;background:#252c3f;border:none;color:#fff;outline:#70b8ff solid 1px;}
+.btn{display:block;margin:18px auto;padding:13px 38px;font-size:22px;border:none;border-radius:10px;cursor:pointer;}
+.start-btn{background:#2772db;color:#fff;}
+.start-btn:hover{background:#1f5fb8;}
+.submit-btn{background:#23a878;color:#fff;display:none;}
+.submit-btn:hover{background:#1d8e65;}
+.reset-btn{background:#555;color:#fff;margin-top:10px;display:none;}
+.tip{text-align:center;font-size:20px;margin-top:15px;}
+.right{color:#44e888;}
+.wrong{color:#ff6b78;}
+.start-page{text-align:center;padding:50px 10px;}
+#endBox{display:none;text-align:center;}
+#overText{display:none;text-align:center;color:#ff4757;font-size:30px;margin-top:30px;}
+.count-tip{color:#ffd360;font-size:22px;margin-top:15px;}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="box">
+    <!-- 初始启动页面，必须点开始游戏 -->
+    <div id="startBox" class="start-page">
+        <div class="title">侦探推理小游戏</div>
+        <div class="desc-text">
+            一桩别墅失窃案件，收集线索，找出真正小偷<br>
+            阅读全部线索后输入你的推理答案，揭开真相
+        </div>
+        <button class="btn start-btn" onclick="openGame()">开始游戏</button>
+    </div>
+
+    <!-- 推理主界面 -->
+    <div id="gameBox" style="display:none;">
+        <div class="title">别墅失窃案</div>
+        <div class="area">
+            <h3>案件线索</h3>
+            <div class="clue">1. 失窃物品：书房名贵钻石，深夜丢失。</div>
+            <div class="clue">2. 门窗无撬动痕迹，小偷拥有别墅钥匙。</div>
+            <div class="clue">3. 当晚三名嫌疑人留宿：管家、保洁、远房亲戚。</div>
+            <div class="clue">4. 保洁无大门钥匙，亲戚傍晚就离开别墅。</div>
+            <div class="clue">5. 管家常年持有别墅所有房间钥匙。</div>
+        </div>
+        <div class="question">请推理：谁是偷走钻石的小偷？</div>
+        <input class="input-box" id="answerInput" placeholder="在此输入你的答案">
+        <button class="btn submit-btn" id="subBtn" onclick="checkAnswer()">提交推理</button>
+        <div class="tip" id="resultTip"></div>
+        <button class="btn reset-btn" id="reBtn" onclick="resetThink()">重新推理</button>
+    </div>
+
+    <!-- 案件结局真相页面 -->
+    <div id="endBox">
+        <div class="title">推理结束 · 案件真相</div>
+        <div class="desc-text" id="truthText"></div>
+        <div class="count-tip" id="countTip"></div>
+    </div>
+
+    <!-- 游戏彻底结束页面 -->
+    <div id="overText">
+        游戏全部结束！
+    </div>
+</div>
+
+<script>
+// 正确答案
+const trueAnswer = "管家";
+
+// 打开推理页面
+function openGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    document.getElementById("subBtn").style.display = "block";
+}
+
+// 核对推理答案
+function checkAnswer(){
+    let inputVal = document.getElementById("answerInput").value.trim();
+    let tipDom = document.getElementById("resultTip");
+    if(inputVal == ""){
+        tipDom.innerText = "请输入你的推理结果！";
+        tipDom.className = "tip wrong";
+        return;
+    }
+    if(inputVal === trueAnswer){
+        tipDom.innerText = "推理完全正确！你是优秀侦探！";
+        tipDom.className = "tip right";
+        setTimeout(gameEnd,1200);
+    }else{
+        tipDom.innerText = "推理错误，请重新观察线索再作答！";
+        tipDom.className = "tip wrong";
+        document.getElementById("reBtn").style.display = "block";
+    }
+}
+
+// 清空输入重新思考
+function resetThink(){
+    document.getElementById("answerInput").value = "";
+    document.getElementById("resultTip").innerText = "";
+    document.getElementById("reBtn").style.display = "none";
+}
+
+// 推理完成，显示案件真相，倒计时10秒后结束游戏
+function gameEnd(){
+    document.getElementById("gameBox").style.display = "none";
+    document.getElementById("endBox").style.display = "block";
+    document.getElementById("truthText").innerText = "真相：管家是小偷。保洁没有钥匙无法进入书房，亲戚当晚早已离开，只有管家持有全屋钥匙，深夜潜入偷走钻石。";
+    
+    let leftTime = 10;
+    const countDom = document.getElementById("countTip");
+    countDom.innerText = `距离游戏结束还剩：${leftTime} 秒`;
+
+    let timer = setInterval(()=>{
+        leftTime--;
+        countDom.innerText = `距离游戏结束还剩：${leftTime} 秒`;
+        if(leftTime <= 0){
+            clearInterval(timer);
+            // 10秒到，切换结束页面
+            document.getElementById("endBox").style.display = "none";
+            document.getElementById("overText").style.display = "block";
+        }
+    },1000);
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

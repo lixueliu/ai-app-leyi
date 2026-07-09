@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>单人狼人杀身份抽取小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+body{background:#10121a;padding:50px;}
+.box{max-width:600px;margin:0 auto;background:#1c202e;padding:40px;border-radius:20px;box-shadow:0 0 20px #771c2c;}
+.title{font-size:34px;color:#ff4757;text-align:center;font-weight:bold;margin-bottom:30px;position:relative;}
+.text{font-size:22px;color:#dddddd;text-align:center;line-height:1.8;margin:20px 0;}
+.id-card{margin:35px auto;padding:30px;background:#282d3f;border-radius:16px;width:90%;display:none;}
+.id-name{font-size:32px;text-align:center;font-weight:bold;margin-bottom:15px;position:relative;}
+.id-desc{font-size:20px;color:#cccccc;text-align:center;line-height:1.7;}
+.btn{display:block;margin:25px auto;padding:14px 40px;font-size:24px;border:none;border-radius:12px;cursor:pointer;}
+.start-btn{background:#dd3344;color:#fff;}
+.start-btn:hover{background:#bb2233;}
+.draw-btn{background:#23a359;color:#fff;display:none;}
+.draw-btn:hover{background:#1d8c4c;}
+.game-btn{background:#4285f4;color:#fff;display:none;}
+.game-btn:hover{background:#306bcd;}
+.start-page{text-align:center;}
+.red{color:#ff4757;}
+.blue{color:#47a9ff;}
+.green{color:#36e078;}
+.gold{color:#ffd360;}
+.purple{color:#c47dff;}
+#fightPage{display:none;text-align:center;}
+#nightText{font-size:30px;color:#ffeeee;margin:40px 0;min-height:60px;}
+#roleShow{font-size:24px;color:#ffd360;margin-top:20px;}
+.tip-wait{color:#ff9999;font-size:20px;margin-top:10px;}
+
+/* 血迹装饰 */
+.blood-text::before{
+    content:"";
+    position:absolute;
+    top:-8px;
+    left:10%;
+    width:20px;
+    height:20px;
+    background:radial-gradient(circle,#ff2222 0%,transparent 70%);
+    transform:rotate(15deg);
+}
+.blood-text::after{
+    content:"";
+    position:absolute;
+    bottom:-6px;
+    right:15%;
+    width:16px;
+    height:16px;
+    background:radial-gradient(circle,#ff0000 0%,transparent 70%);
+    transform:rotate(-20deg);
+}
+.id-name.blood-text::before{
+    top:-10px;
+    left:5%;
+    width:22px;
+    height:22px;
+}
+.id-name.blood-text::after{
+    bottom:-8px;
+    right:10%;
+    width:18px;
+    height:18px;
+}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="box">
+    <!-- 初始启动页面 -->
+    <div id="startBox" class="start-page">
+        <div class="title blood-text">狼人杀抽身份小游戏</div>
+        <div class="text">
+            单人随机抽取狼人杀身份<br>
+            夜间操作限时10秒作答，天亮后等待10秒发言时间，自动抽签放逐嫌疑人
+        </div>
+        <button class="btn start-btn" onclick="openGame()">开始游戏</button>
+    </div>
+
+    <!-- 抽身份主界面 -->
+    <div id="gameBox" style="display:none;text-align:center;">
+        <div class="title blood-text">抽取你的专属身份</div>
+        <button class="btn draw-btn" id="drawBtn" onclick="randomRole()">抽取身份</button>
+        <!-- 身份卡片 -->
+        <div class="id-card" id="roleCard">
+            <div class="id-name blood-text" id="roleName"></div>
+            <div class="id-desc" id="roleInfo"></div>
+        </div>
+        <!-- 抽完身份仅显示进入对决按钮 -->
+        <button class="btn game-btn" id="gameStartBtn" onclick="enterGame()" style="display:none;">进入对决</button>
+    </div>
+
+    <!-- 夜晚流程动画页面 -->
+    <div id="fightPage">
+        <div class="title blood-text">对局进行中</div>
+        <div id="nightText"></div>
+        <div class="tip-wait" id="waitTip"></div>
+        <div id="roleShow">你的本局身份：<span id="finalRole"></span></div>
+    </div>
+</div>
+
+<script>
+// 身份库
+const roleData = [
+    {
+        name:"狼人",
+        color:"red",
+        info:"夜晚可以杀死一名好人，杀光场上好人即可获胜。"
+    },
+    {
+        name:"预言家",
+        color:"blue",
+        info:"每晚查验一名玩家，知晓对方是好人还是狼人。"
+    },
+    {
+        name:"女巫",
+        color:"purple",
+        info:"持有解药、毒药各一瓶，解药救人，毒药夜间毒杀一人。"
+    },
+    {
+        name:"猎人",
+        color:"green",
+        info:"被狼人刀死或投票出局时，可以开枪带走一名玩家。"
+    },
+    {
+        name:"平民",
+        color:"gold",
+        info:"无夜间技能，白天发言投票找出狼人，助力好人胜利。"
+    },
+    {
+        name:"守卫",
+        color:"blue",
+        info:"每晚守护一名玩家，被守护目标当夜不会被狼人击杀。"
+    }
+];
+let nowRole = "";
+// 夜晚台词序列
+const nightTextList = [
+    "天黑起立",
+    "天黑请闭眼",
+    "狼人请睁眼",
+    "请问你要杀谁？",
+    "狼人请闭眼！",
+    "预言家请睁眼",
+    "你要查验谁？",
+    "预言家请闭眼！",
+    "女巫请睁眼",
+    "今晚有人遇害，是否使用解药？",
+    "是否使用毒药毒杀玩家？",
+    "女巫请闭眼！",
+    "守卫请睁眼",
+    "你今晚守护哪位玩家？",
+    "守卫请闭眼！",
+    "天亮了，大家请睁眼！"
+];
+
+// 打开抽身份界面
+function openGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    document.getElementById("drawBtn").style.display = "block";
+}
+
+// 随机抽取唯一身份
+function randomRole(){
+    let randomIndex = Math.floor(Math.random() * roleData.length);
+    let myRole = roleData[randomIndex];
+    nowRole = myRole.name;
+
+    let nameDom = document.getElementById("roleName");
+    nameDom.innerText = myRole.name;
+    nameDom.className = "id-name blood-text " + myRole.color;
+    document.getElementById("roleInfo").innerText = myRole.info;
+    document.getElementById("roleCard").style.display = "block";
+
+    document.getElementById("drawBtn").style.display = "none";
+    document.getElementById("gameStartBtn").style.display = "block";
+}
+
+// 进入对决，夜晚流程
+function enterGame(){
+    document.getElementById("gameBox").style.display = "none";
+    document.getElementById("fightPage").style.display = "block";
+    document.getElementById("finalRole").innerText = nowRole;
+    let textIndex = 0;
+    const textDom = document.getElementById("nightText");
+    const waitTip = document.getElementById("waitTip");
+
+    function showNextText(){
+        waitTip.innerText = "";
+        if(textIndex >= nightTextList.length){
+            // 天亮，进入白天发言等待10秒
+            textDom.innerText = "天亮了，自由发言时间";
+            let dayTime = 10;
+            let dayTimer = setInterval(()=>{
+                dayTime--;
+                waitTip.innerText = `白天发言剩余：${dayTime} 秒，时间结束自动抽签放逐嫌疑人`;
+                if(dayTime <= 0){
+                    clearInterval(dayTimer);
+                    // 随机抽签选出被放逐玩家
+                    let playerNum = Math.floor(Math.random()*6)+1;
+                    alert(`10秒发言结束，抽签结果：玩家${playerNum}被认定为凶手，放逐出局！`);
+                    textDom.innerText = "本局一轮游戏结束";
+                    waitTip.innerText = "";
+                }
+            },1000);
+            return;
+        }
+        let currTxt = nightTextList[textIndex];
+        textDom.innerText = currTxt;
+        let needAnswer = false;
+        let promptText = "";
+
+        // 匹配对应身份需要回答的台词
+        if(currTxt === "请问你要杀谁？" && nowRole === "狼人"){
+            needAnswer = true;
+            promptText = "你是狼人，请输入要击杀的玩家，10秒内作答";
+        }
+        if(currTxt === "你要查验谁？" && nowRole === "预言家"){
+            needAnswer = true;
+            promptText = "你是预言家，请输入要查验的玩家，10秒内作答";
+        }
+        if(currTxt === "今晚有人遇害，是否使用解药？" && nowRole === "女巫"){
+            needAnswer = true;
+            promptText = "你是女巫，输入是/否，10秒内作答";
+        }
+        if(currTxt === "是否使用毒药毒杀玩家？" && nowRole === "女巫"){
+            needAnswer = true;
+            promptText = "你是女巫，输入毒杀玩家，不用就填无，10秒内作答";
+        }
+        if(currTxt === "你今晚守护哪位玩家？" && nowRole === "守卫"){
+            needAnswer = true;
+            promptText = "你是守卫，请输入守护玩家，10秒内作答";
+        }
+
+        if(needAnswer){
+            let timeLeft = 10;
+            let timer = setInterval(()=>{
+                timeLeft--;
+                waitTip.innerText = `剩余作答时间：${timeLeft} 秒`;
+                if(timeLeft <= 0){
+                    clearInterval(timer);
+                    alert("答题超时，自动跳过本操作");
+                    textIndex++;
+                    setTimeout(showNextText,100);
+                }
+            },1000);
+
+            setTimeout(()=>{
+                clearInterval(timer);
+                let res = prompt(promptText);
+                if(res !== null && res.trim() !== ""){
+                    alert(`已记录你的操作：${res}`);
+                }else{
+                    alert("未输入操作，自动跳过");
+                }
+                textIndex++;
+                setTimeout(showNextText,100);
+            },10000);
+        }else{
+            textIndex++;
+            setTimeout(showNextText,100);
+        }
+    }
+    showNextText();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

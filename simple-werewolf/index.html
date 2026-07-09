@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>简易真人狼人杀</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:微软雅黑}
+body{background:#11141c;color:#eee;padding:30px}
+.wrap{max-width:800px;margin:0 auto;background:#1b202d;padding:30px;border-radius:16px;box-shadow:0 0 20px #621a28}
+.title{text-align:center;font-size:34px;color:#ff4d58;margin-bottom:20px;font-weight:bold}
+.info{text-align:center;font-size:20px;margin:10px 0;color:#ffd370}
+.area{margin:25px 0;padding:20px;border:1px solid #444;border-radius:12px}
+.area h3{font-size:24px;margin-bottom:15px;color:#ff8888}
+.player-box{display:flex;flex-wrap:wrap;gap:12px;margin:15px 0}
+.player{width:95px;padding:12px;text-align:center;background:#2c3344;border-radius:10px;border:1px solid #555}
+.player.dead{opacity:0.4;border-color:#922}
+.btn{padding:10px 22px;font-size:18px;border:none;border-radius:8px;cursor:pointer;margin:6px}
+.btn-red{background:#d63344;color:#fff}
+.btn-green{background:#28a745;color:#fff}
+.btn-blue{background:#2772db;color:#fff}
+.btn-gray{background:#555;color:#fff}
+.operate{margin:15px 0;text-align:center}
+.tip{color:#ccc;font-size:17px;line-height:1.7;margin-top:10px}
+.start-page{text-align:center;padding:60px 10px}
+.start-page .desc{font-size:20px;color:#bbb;margin:30px 0;line-height:1.8}
+#gameMain{display:none}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="wrap">
+    <!-- 开局启动页 -->
+    <div id="startBox" class="start-page">
+        <div class="title">简易真人狼人杀</div>
+        <div class="desc">
+            6人标准对局配置：2狼人、预言家、女巫、2平民<br>
+            完整流程：夜晚行动 → 白天发言投票 → 判定胜负<br>
+            操作方式：点击对应玩家执行技能/投票
+        </div>
+        <button class="btn btn-red" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div id="gameMain">
+        <div class="title">简易狼人杀对局</div>
+        <div class="info">当前阶段：<span id="phase">等待开局</span></div>
+        <div class="info">存活人数：<span id="aliveNum">6</span> | 狼人剩余：<span id="wolfNum">2</span></div>
+
+        <!-- 所有玩家展示 -->
+        <div class="area">
+            <h3>场上玩家</h3>
+            <div class="player-box" id="playerBox"></div>
+            <div class="tip">点击玩家进行操作，死亡玩家无法选中</div>
+        </div>
+
+        <!-- 操作面板 -->
+        <div class="area" id="operateArea">
+            <h3>操作区</h3>
+            <div class="operate" id="operBtns"></div>
+            <div class="tip" id="operTip"></div>
+        </div>
+
+        <!-- 日志记录 -->
+        <div class="area">
+            <h3>对局记录</h3>
+            <div class="tip" id="logBox"></div>
+        </div>
+
+        <div style="text-align:center;margin-top:20px">
+            <button class="btn btn-gray" onclick="resetGame()">重新开局</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 全局游戏数据
+let players = [];
+let phase = "nightWolf"; // nightWolf狼夜,nightSeer预言家,nightWitch女巫,dayVote白天投票
+let wolfKill = null; // 狼人刀人目标
+let witchSave = null; // 女巫救
+let witchPoison = null; // 女巫毒
+let witchHasSave = true;
+let witchHasPoison = true;
+let voteTarget = null;
+let logList = [];
+
+// 角色定义
+const roleList = ["狼人","狼人","预言家","女巫","平民","平民"];
+
+// 进入游戏
+function startGame(){
+    document.getElementById("startBox").style.display = "none";
+    document.getElementById("gameMain").style.display = "block";
+    initGame();
+}
+
+// 初始化一局
+function initGame(){
+    // 重置数据
+    phase = "nightWolf";
+    wolfKill = null;
+    witchSave = null;
+    witchPoison = null;
+    witchHasSave = true;
+    witchHasPoison = true;
+    voteTarget = null;
+    logList = [];
+    players = [];
+
+    // 打乱角色分配6名玩家
+    let shuffleRole = [...roleList].sort(()=>Math.random()-0.5);
+    for(let i=0;i<6;i++){
+        players.push({
+            id:i,
+            name:"玩家"+(i+1),
+            role:shuffleRole[i],
+            alive:true
+        })
+    }
+    addLog("游戏开始！天黑请闭眼，狼人请行动");
+    refreshUI();
+}
+
+// 刷新全部界面
+function refreshUI(){
+    // 更新阶段文字
+    let phaseText = {
+        nightWolf:"夜晚·狼人行动",
+        nightSeer:"夜晚·预言家查验",
+        nightWitch:"夜晚·女巫行动",
+        dayVote:"白天·公投放逐"
+    }[phase];
+    document.getElementById("phase").innerText = phaseText;
+
+    // 统计存活、狼人数量
+    let alive = players.filter(p=>p.alive);
+    let wolfAlive = alive.filter(p=>p.role=="狼人");
+    document.getElementById("aliveNum").innerText = alive.length;
+    document.getElementById("wolfNum").innerText = wolfAlive.length;
+
+    // 渲染玩家卡片
+    let playerBox = document.getElementById("playerBox");
+    playerBox.innerHTML = "";
+    players.forEach(p=>{
+        let div = document.createElement("div");
+        div.className = "player "+(p.alive?"":"dead");
+        div.innerText = p.name;
+        div.onclick = ()=>selectPlayer(p.id);
+        playerBox.appendChild(div);
+    })
+
+    // 刷新操作按钮
+    renderOperateBtn();
+    // 刷新日志
+    document.getElementById("logBox").innerText = logList.join("\n");
+    // 胜负判定
+    checkWin();
+}
+
+// 当前选中玩家ID
+let selectId = null;
+function selectPlayer(id){
+    selectId = id;
+    refreshUI();
+}
+
+// 根据阶段渲染操作按钮
+function renderOperateBtn(){
+    let btns = document.getElementById("operBtns");
+    let tip = document.getElementById("operTip");
+    btns.innerHTML = "";
+    tip.innerText = "";
+    let alivePlayer = players.filter(p=>p.alive);
+
+    if(phase=="nightWolf"){
+        tip.innerText = "狼人阶段：选择一名存活玩家击杀，点击确认刀人";
+        let btnKill = document.createElement("button");
+        btnKill.className = "btn btn-red";
+        btnKill.innerText = "确认击杀";
+        btnKill.onclick = wolfKillTarget;
+        btns.appendChild(btnKill);
+    }else if(phase=="nightSeer"){
+        tip.innerText = "预言家阶段：选择一名存活玩家查验身份，点击确认查验";
+        let btnCheck = document.createElement("button");
+        btnCheck.className = "btn btn-blue";
+        btnCheck.innerText = "确认查验";
+        btnCheck.onclick = seerCheck;
+        btns.appendChild(btnCheck);
+    }else if(phase=="nightWitch"){
+        tip.innerText = "女巫阶段：可解药救被刀玩家，毒药毒杀一人，操作后结束夜晚";
+        if(witchHasSave){
+            let btnSave = document.createElement("button");
+            btnSave.className = "btn btn-green";
+            btnSave.innerText = "使用解药救人";
+            btnSave.onclick = witchUseSave;
+            btns.appendChild(btnSave);
+        }
+        if(witchHasPoison){
+            let btnPoison = document.createElement("button");
+            btnPoison.className = "btn btn-red";
+            btnPoison.innerText = "使用毒药毒杀";
+            btnPoison.onclick = witchUsePoison;
+            btns.appendChild(btnPoison);
+        }
+        let btnEndNight = document.createElement("button");
+        btnEndNight.className = "btn btn-gray";
+        btnEndNight.innerText = "结束夜晚进入白天";
+        btnEndNight.onclick = endNight;
+        btns.appendChild(btnEndNight);
+    }else if(phase=="dayVote"){
+        tip.innerText = "白天投票阶段：选择一名玩家投票放逐，确认投票后统计票数";
+        let btnVote = document.createElement("button");
+        btnVote.className = "btn btn-red";
+        btnVote.innerText = "投出此玩家";
+        btnVote.onclick = votePlayer;
+        btns.appendChild(btnVote);
+        let btnEndVote = document.createElement("button");
+        btnEndVote.className = "btn btn-gray";
+        btnEndVote.innerText = "结束投票，执行放逐";
+        btnEndVote.onclick = endVote;
+        btns.appendChild(btnEndVote);
+    }
+}
+
+// 狼人刀人
+function wolfKillTarget(){
+    if(selectId==null){alert("请先选择一名玩家！");return}
+    let target = players[selectId];
+    if(!target.alive){alert("不能选择已死亡玩家！");return}
+    wolfKill = selectId;
+    addLog("狼人选择击杀："+target.name);
+    phase = "nightSeer";
+    selectId = null;
+    refreshUI();
+}
+
+// 预言家查验
+function seerCheck(){
+    if(selectId==null){alert("请先选择一名玩家！");return}
+    let target = players[selectId];
+    if(!target.alive){alert("不能选择已死亡玩家！");return}
+    addLog("预言家查验"+target.name+"，身份为："+target.role);
+    phase = "nightWitch";
+    selectId = null;
+    refreshUI();
+}
+
+// 女巫解药
+function witchUseSave(){
+    if(wolfKill==null){alert("今夜无人被刀，无法使用解药");return}
+    witchSave = wolfKill;
+    witchHasSave = false;
+    addLog("女巫使用解药，救活"+players[wolfKill].name);
+    selectId = null;
+    refreshUI();
+}
+
+// 女巫毒药
+function witchUsePoison(){
+    if(selectId==null){alert("请先选择一名玩家！");return}
+    let target = players[selectId];
+    if(!target.alive){alert("不能选择已死亡玩家！");return}
+    witchPoison = selectId;
+    witchHasPoison = false;
+    addLog("女巫使用毒药，毒杀"+target.name);
+    selectId = null;
+    refreshUI();
+}
+
+// 夜晚结束，结算死亡
+function endNight(){
+    // 先处理狼人刀人
+    if(wolfKill != witchSave && wolfKill!=null){
+        players[wolfKill].alive = false;
+        addLog("天亮，"+players[wolfKill].name+"被狼人杀害出局");
+    }
+    // 处理女巫毒
+    if(witchPoison!=null){
+        players[witchPoison].alive = false;
+        addLog(players[witchPoison].name+"被女巫毒药毒杀出局");
+    }
+    // 切换白天投票
+    phase = "dayVote";
+    wolfKill = null;
+    witchSave = null;
+    witchPoison = null;
+    selectId = null;
+    refreshUI();
+}
+
+// 白天投票
+function votePlayer(){
+    if(selectId==null){alert("请先选择一名玩家投票！");return}
+    let target = players[selectId];
+    if(!target.alive){alert("不能投票已死亡玩家！");return}
+    voteTarget = selectId;
+    addLog("投票指向："+target.name);
+    refreshUI();
+}
+
+// 结束投票，放逐玩家
+function endVote(){
+    if(voteTarget==null){alert("未选择投票目标！");return}
+    players[voteTarget].alive = false;
+    addLog("公投放逐"+players[voteTarget].name+"，该玩家出局");
+    voteTarget = null;
+    // 再次进入夜晚狼人行动
+    phase = "nightWolf";
+    addLog("天黑，请闭眼，狼人再次行动");
+    selectId = null;
+    refreshUI();
+}
+
+// 添加日志
+function addLog(text){
+    logList.push(text);
+}
+
+// 胜负判定
+function checkWin(){
+    let alive = players.filter(p=>p.alive);
+    let wolf = alive.filter(p=>p.role=="狼人");
+    let good = alive.filter(p=>p.role!="狼人");
+    // 狼人全灭 好人胜
+    if(wolf.length == 0){
+        setTimeout(()=>alert("🎉 所有狼人全部出局，好人阵营胜利！"),100);
+    }
+    // 狼人人数大于等于好人，狼人胜
+    if(wolf.length >= good.length && wolf.length>0){
+        setTimeout(()=>alert("🌑 狼人数量与好人持平，狼人阵营胜利！"),100);
+    }
+}
+
+// 整局重置
+function resetGame(){
+    initGame();
+}
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

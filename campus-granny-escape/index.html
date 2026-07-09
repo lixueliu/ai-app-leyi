@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>校园逃离恐怖老奶奶</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:SimHei;}
+body{background:#0f1722;color:#fff;padding:20px;text-align:center;overflow:hidden;}
+h1{color:#ff4242;margin-bottom:10px;font-size:26px;}
+.desc{color:#b8c2cc;margin-bottom:20px;line-height:1.5}
+/* 校园走廊整体容器 */
+.school-scene{
+  max-width:700px;margin:0 auto;
+  background:#334155;padding:20px;border-radius:12px;
+  position:relative;
+}
+.corridor{
+  height:100px;background:#475569;
+  border-radius:8px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.granny-char{
+  position:absolute;font-size:40px;top:50%;transform:translateY(-50%);
+  transition:left 0.8s linear;
+}
+.room-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.classroom{
+  height:190px;background:#1e293b;
+  border:3px solid #64748b;border-radius:10px;
+  position:relative;cursor:pointer;transition:0.2s;overflow:hidden;
+}
+.classroom:hover{border-color:#ff6060;background:#273449;}
+.classroom.current{border-color:#00e0ff;box-shadow:0 0 10px #00e0ff60;}
+.room-title{
+  position:absolute;top:8px;left:12px;color:#cbd5e1;font-size:16px;
+}
+.student{
+  position:absolute;font-size:34px;transform:translate(-50%,-50%);
+  animation:bodyWave 1s infinite alternate ease-in-out;
+}
+@keyframes bodyWave{
+  0%{transform:translate(-50%,-50%) translateY(-3px);}
+  100%{transform:translate(-50%,-50%) translateY(3px);}
+}
+.me{color:#00e0ff;}
+.other-stu{color:#ffdd33;}
+.tip-text{font-size:19px;margin:20px 0;min-height:34px;}
+.win-text{color:#5cf096;}
+.lose-text{color:#ff4444;}
+#restart{
+  padding:11px 35px;font-size:18px;background:#aa1c1c;
+  color:#fff;border:none;border-radius:7px;cursor:pointer;display:none;
+}
+#restart:hover{background:#d12828;}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<h1>校园逃离恐怖老奶奶</h1>
+<div class="desc">
+4间校园教室，随机1间安全教室，老奶奶只能抽查普通教室<br>
+👨蓝色=你 ｜ 👤黄色=其他学生玩家 ｜ 👵红色=走廊巡逻老奶奶
+</div>
+
+<div class="school-scene">
+  <!-- 走廊（老奶奶巡逻区域） -->
+  <div class="corridor" id="corridor">
+    <div class="granny-char" id="granny">👵</div>
+  </div>
+  <!-- 四间教室 -->
+  <div class="room-row">
+    <div class="classroom" data-id="1"><div class="room-title">教室1</div></div>
+    <div class="classroom" data-id="2"><div class="room-title">教室2</div></div>
+    <div class="classroom" data-id="3"><div class="room-title">教室3</div></div>
+    <div class="classroom" data-id="4"><div class="room-title">教室4</div></div>
+  </div>
+</div>
+
+<div class="tip-text" id="infoTip"></div>
+<button id="restart">重新开始本局</button>
+
+<script>
+const roomDomList = document.querySelectorAll(".classroom");
+const corridor = document.getElementById("corridor");
+const grannyDom = document.getElementById("granny");
+const tipBox = document.getElementById("infoTip");
+const restartBtn = document.getElementById("restart");
+
+// 全局游戏数据
+let safeClassId = 0;
+let myClass = 1;
+let grannyCheckTarget = 0; // 老奶奶本次要抽查的教室
+let escapeCount = 60;
+let gameIsRun = true;
+let gameTimer = null;
+let grannyWalkDir = 1; // 老奶奶走廊移动方向
+// 3名AI其他学生玩家
+const aiStudents = [
+  {sid:1, room:1},
+  {sid:2, room:2},
+  {sid:3, room:3}
+];
+
+// 渲染画面：走廊老奶奶+教室所有学生
+function renderAllScene(){
+  // 老奶奶走廊来回走动动画
+  let grannyX = parseFloat(grannyDom.style.left || "0");
+  if(grannyX > corridor.clientWidth - 60) grannyWalkDir = -1;
+  if(grannyX < 0) grannyWalkDir = 1;
+  grannyDom.style.left = grannyX + grannyWalkDir * 1.2 + "px";
+
+  // 清空所有教室内容，重新绘制
+  roomDomList.forEach(dom=>{
+    const rid = Number(dom.dataset.id);
+    dom.innerHTML = `<div class="room-title">教室${rid}</div>`;
+    dom.classList.toggle("current", rid === myClass);
+
+    // 绘制自己（蓝色玩家）
+    if(myClass === rid){
+      const meDom = document.createElement("div");
+      meDom.className = "student me";
+      meDom.style.left = "32%";
+      meDom.style.top = "62%";
+      meDom.textContent = "👨";
+      dom.appendChild(meDom);
+    }
+    // 绘制黄色其他学生AI
+    aiStudents.forEach(stu=>{
+      if(stu.room === rid){
+        const otherDom = document.createElement("div");
+        otherDom.className = "student other-stu";
+        otherDom.style.left = (40 + stu.sid * 13) + "%";
+        otherDom.style.top = "42%";
+        otherDom.textContent = "👤";
+        dom.appendChild(otherDom);
+      }
+    })
+  })
+}
+
+// 点击切换教室
+roomDomList.forEach(dom=>{
+  dom.onclick = ()=>{
+    if(!gameIsRun) return;
+    myClass = Number(dom.dataset.id);
+    renderAllScene();
+    checkBeCaught();
+  }
+})
+
+// AI学生随机换教室
+function aiStudentMove(){
+  aiStudents.forEach(stu=>{
+    stu.room = Math.floor(Math.random() * 4) + 1;
+  })
+}
+
+// 老奶奶随机选定一间普通教室抽查（不会选安全教室）
+function grannyNewCheckRoom(){
+  let target;
+  do{
+    target = Math.floor(Math.random() * 4) + 1;
+  }while(target === safeClassId);
+  grannyCheckTarget = target;
+}
+
+// 判断是否被老奶奶抓到
+function checkBeCaught(){
+  if(myClass === grannyCheckTarget){
+    gameOver(false);
+  }
+}
+
+// 游戏结束弹窗文字
+function gameOver(isWin){
+  gameIsRun = false;
+  clearInterval(gameTimer);
+  restartBtn.style.display = "block";
+  if(isWin){
+    tipBox.innerHTML = `<span class="win-text">成功逃出校园！本局安全教室：${safeClassId}号</span>`;
+  }else{
+    tipBox.innerHTML = `<span class="lose-text">老奶奶查到你了！本局安全教室：${safeClassId}号</span>`;
+  }
+}
+
+// 游戏主循环动画
+function startGameLoop(){
+  clearInterval(gameTimer);
+  gameTimer = setInterval(()=>{
+    if(!gameIsRun) return;
+    escapeCount--;
+    // 每5秒刷新：老奶奶换抽查目标、学生换教室
+    if(escapeCount % 5 === 0){
+      grannyNewCheckRoom();
+      aiStudentMove();
+    }
+    renderAllScene();
+    checkBeCaught();
+
+    // 实时提示文字
+    if(myClass === safeClassId){
+      tipBox.innerHTML = `<span class="win-text">当前在安全教室，老奶奶不会抽查这里！剩余${escapeCount}秒</span>`;
+    }else{
+      tipBox.innerHTML = `危险！老奶奶准备抽查${grannyCheckTarget}教室，剩余逃生时间：${escapeCount}秒`;
+    }
+
+    // 倒计时结束胜利
+    if(escapeCount <= 0) gameOver(true);
+  }, 1000)
+}
+
+// 初始化新一局游戏
+function resetGame(){
+  gameIsRun = true;
+  escapeCount = 60;
+  restartBtn.style.display = "none";
+  // 随机安全教室
+  safeClassId = Math.floor(Math.random() * 4) + 1;
+  myClass = 1;
+  // 初始化老奶奶抽查房间
+  grannyNewCheckRoom();
+  // 重置AI学生位置
+  aiStudents[0].room = 1;
+  aiStudents[1].room = 2;
+  aiStudents[2].room = 3;
+  // 老奶奶初始走廊位置
+  grannyDom.style.left = "10px";
+  grannyWalkDir = 1;
+
+  renderAllScene();
+  startGameLoop();
+}
+restartBtn.onclick = resetGame;
+resetGame();
+</script>
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

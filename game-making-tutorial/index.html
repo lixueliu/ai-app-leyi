@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>小游戏制作教学小游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"微软雅黑"}
+
+body{
+    background: linear-gradient(#050118, #0f0633, #1a0b4d);
+    min-height: 100vh;
+    padding:40px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 动态星空层 */
+.stars{
+    position:fixed;
+    top:0;
+    left:0;
+    width:200%;
+    height:200%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px,#ffffff,transparent),
+        radial-gradient(2px 2px at 40px 70px,#fff,transparent),
+        radial-gradient(1px 1px at 90px 40px,#fff,transparent),
+        radial-gradient(2px 2px at 160px 120px,#fff,transparent),
+        radial-gradient(1px 1px at 230px 80px,#fff,transparent),
+        radial-gradient(2px 2px at 300px 160px,#fff,transparent),
+        radial-gradient(1px 1px at 370px 210px,#fff,transparent),
+        radial-gradient(2px 2px at 450px 90px,#fff,transparent),
+        radial-gradient(1px 1px at 520px 180px,#fff,transparent),
+        radial-gradient(2px 2px at 600px 60px,#fff,transparent);
+    background-repeat: repeat;
+    background-size: 500px 300px;
+    opacity:0.7;
+    z-index:-1;
+    animation: moveStars 60s linear infinite;
+}
+
+/* 流星/闪烁星星效果 */
+.twinkle{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:transparent;
+    z-index:-1;
+    pointer-events:none;
+}
+
+.twinkle::before,
+.twinkle::after{
+    content:"";
+    position:absolute;
+    width:2px;
+    height:2px;
+    background:#fff;
+    border-radius:50%;
+    animation: twinkle 3s infinite;
+}
+
+.twinkle::before{
+    top:10%;
+    left:20%;
+    animation-delay:0s;
+}
+
+.twinkle::after{
+    top:30%;
+    left:80%;
+    animation-delay:1.5s;
+}
+
+.box{
+    max-width:720px;
+    margin:0 auto;
+    background:rgba(255,255,255,0.08);
+    padding:35px;
+    border-radius:20px;
+    box-shadow:0 0 15px #6236ff80;
+    border:1px solid #8660ff44;
+    backdrop-filter: blur(8px);
+}
+
+.title{
+    font-size:34px;
+    color:#e0e8ff;
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:25px;
+}
+
+.text{
+    font-size:22px;
+    color:#d8e4ff;
+    text-align:center;
+    line-height:1.8;
+    margin:20px 0;
+}
+
+.step-box{
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:16px;
+    margin:30px 0;
+    display:none;
+    border:1px solid #a080ff40;
+}
+
+.step-title{
+    font-size:26px;
+    color:#c8d8ff;
+    margin-bottom:15px;
+}
+
+.step-desc{
+    font-size:20px;
+    color:#e6eeff;
+    line-height:1.7;
+    margin:10px 0;
+}
+
+.btn{
+    display:block;
+    margin:20px auto;
+    padding:14px 40px;
+    font-size:23px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+.start-btn{
+    background:#4169e1;
+    color:#fff;
+}
+
+.start-btn:hover{
+    background:#3153b8;
+}
+
+.next-btn{
+    background:#20b2aa;
+    color:#fff;
+    display:none;
+}
+
+.next-btn:hover{
+    background:#17918a;
+}
+
+.end-text{
+    display:none;
+    text-align:center;
+    margin-top:30px;
+}
+
+#startPage{
+    text-align:center;
+}
+
+/* 星星移动动画 */
+@keyframes moveStars{
+    0%{
+        transform:translate(0,0);
+    }
+    100%{
+        transform:translate(-50%,-50%);
+    }
+}
+
+/* 星星闪烁动画 */
+@keyframes twinkle{
+    0%,100%{
+        opacity:0.2;
+        box-shadow:0 0 4px #fff;
+    }
+    50%{
+        opacity:1;
+        box-shadow:0 0 8px #fff,0 0 12px #a855f7;
+    }
+}
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffe56f'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23172033' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="twinkle"></div>
+
+<div class="box">
+    <!-- 初始启动页 -->
+    <div id="startPage">
+        <div class="title">小游戏制作教学</div>
+        <div class="text">
+            一款教你制作电子小游戏的互动小游戏<br>
+            跟着步骤学习，轻松做出网页小游戏
+        </div>
+        <button class="btn start-btn" onclick="startTeach()">开始学习</button>
+    </div>
+
+    <!-- 教学步骤区域 -->
+    <div class="step-box" id="stepBox">
+        <div class="step-title" id="stepTitle"></div>
+        <div class="step-desc" id="stepDesc"></div>
+    </div>
+    <button class="btn next-btn" id="nextBtn" onclick="nextStep()">下一步</button>
+
+    <!-- 学习完成页面 -->
+    <div class="end-text" id="endBox">
+        <div class="title">恭喜你学习完成！</div>
+        <div class="text">你已经掌握基础电子小游戏制作全部流程<br>可以自己编写代码、设计专属小游戏啦</div>
+    </div>
+</div>
+
+<script>
+const stepList = [
+    {
+        title:"第一步：确定小游戏主题与玩法",
+        desc:"1.想好游戏类型：推理、对战、对话、寻宝等；\n2.设计简单规则：胜负条件、操作按钮；\n3.规划页面结构：开始页、游戏页、结束页。"
+    },
+    {
+        title:"第二步：搭建网页基础代码框架",
+        desc:"1.新建文本文档，后缀改为.html；\n2.写入基础html骨架，划分多个页面区块；\n3.设置样式：背景、按钮、文字颜色、卡片边框。"
+    },
+    {
+        title:"第三步：编写页面切换逻辑",
+        desc:"1.用display控制页面显示与隐藏；\n2.添加开始按钮、确认按钮、下一步按钮；\n3.设置按钮禁用/解锁条件，限制玩家操作。"
+    },
+    {
+        title:"第四步：添加游戏核心交互功能",
+        desc:"1.文字游戏：输入框、发送字幕、对话回复；\n2.对战游戏：随机对手、石头剪刀布胜负判断；\n3.计时、计数功能，限制游玩回合数。"
+    },
+    {
+        title:"第五步：增加拓展功能（录音/字幕）",
+        desc:"1.录音语音识别：调用浏览器麦克风权限；\n2.实时字幕区域，保存全部对话记录；\n3.完善报错提示，解决权限、设备异常问题。"
+    },
+    {
+        title:"第六步：测试与修复游戏bug",
+        desc:"1.全程游玩一遍，检查按钮是否失效；\n2.修复麦克风、文字发送、跳转异常；\n3.调整文字大小、配色，优化游玩体验。"
+    },
+    {
+        title:"第七步：保存运行小游戏",
+        desc:"1.全部写完后Ctrl+S保存文件；\n2.双击html文件，用浏览器直接打开游玩；\n3.如需录音功能，上传网站使用HTTPS环境。"
+    }
+];
+
+let nowStep = 0;
+
+function startTeach(){
+    document.getElementById("startPage").style.display = "none";
+    document.getElementById("stepBox").style.display = "block";
+    document.getElementById("nextBtn").style.display = "block";
+    showStep();
+}
+
+function showStep(){
+    let data = stepList[nowStep];
+    document.getElementById("stepTitle").innerText = data.title;
+    document.getElementById("stepDesc").innerText = data.desc;
+}
+
+function nextStep(){
+    nowStep++;
+    if(nowStep >= stepList.length){
+        document.getElementById("stepBox").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementById("endBox").style.display = "block";
+        return;
+    }
+    showStep();
+}
+</script>
+
+
+<style id="leyi-home-link-style">
+  .leyi-home-link {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 99999;
+    padding: 8px 12px;
+    border: 2px solid #172033;
+    border-radius: 999px;
+    background: #fffdf6;
+    color: #172033;
+    box-shadow: 3px 3px 0 #172033;
+    font: 700 14px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-decoration: none;
+  }
+  .leyi-home-link:focus-visible { outline: 3px solid #ffe56f; outline-offset: 2px; }
+</style>
+<a class="leyi-home-link" href="../" aria-label="返回 AI 小游戏乐园">返回乐园</a>
+</body>
+</html>

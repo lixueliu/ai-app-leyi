@@ -63,7 +63,7 @@
         position: relative;
         width: min(1140px, calc(100% - 40px));
         margin: 0 auto;
-        padding: 42px 0 56px;
+        padding: 32px 0 56px;
       }
 
       .topbar {
@@ -71,7 +71,7 @@
         gap: 16px;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 30px;
+        margin-bottom: 22px;
       }
 
       .brand {
@@ -131,8 +131,8 @@
 
       .hero {
         display: grid;
-        grid-template-columns: minmax(0, 1.04fr) minmax(310px, 0.96fr);
-        gap: 30px;
+        grid-template-columns: minmax(0, 1.14fr) minmax(280px, 0.86fr);
+        gap: 24px;
         align-items: center;
       }
 
@@ -165,20 +165,20 @@
       }
 
       h1 {
-        max-width: 720px;
+        max-width: 680px;
         margin: 0;
-        font-size: clamp(3.2rem, 8vw, 7.4rem);
-        line-height: 0.88;
+        font-size: clamp(2.45rem, 5.8vw, 5rem);
+        line-height: 0.92;
         letter-spacing: 0;
       }
 
       .summary {
-        max-width: 620px;
-        margin: 24px 0 0;
+        max-width: 660px;
+        margin: 18px 0 0;
         color: #344054;
-        font-size: clamp(1rem, 1.9vw, 1.22rem);
+        font-size: clamp(0.98rem, 1.7vw, 1.12rem);
         font-weight: 650;
-        line-height: 1.8;
+        line-height: 1.75;
       }
 
       .stats {
@@ -186,12 +186,12 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
         max-width: 680px;
-        margin-top: 28px;
+        margin-top: 20px;
       }
 
       .stat {
-        min-height: 86px;
-        padding: 14px;
+        min-height: 72px;
+        padding: 12px;
         border: 3px solid var(--line);
         border-radius: 8px;
         background: var(--panel);
@@ -222,8 +222,8 @@
 
       .arcade {
         position: relative;
-        min-height: 430px;
-        padding: 22px;
+        min-height: 282px;
+        padding: 18px;
         border: 4px solid var(--line);
         border-radius: 8px;
         background: #ffec8b;
@@ -252,7 +252,7 @@
       }
 
       .screen {
-        height: 260px;
+        height: 150px;
         overflow: hidden;
         position: relative;
         border: 4px solid var(--line);
@@ -268,17 +268,17 @@
         top: 20px;
         left: 20px;
         z-index: 2;
-        width: min(260px, calc(100% - 40px));
+        width: min(220px, calc(100% - 40px));
         color: #ffffff;
-        font-size: clamp(1.55rem, 4vw, 2.45rem);
+        font-size: clamp(1.18rem, 2.8vw, 1.7rem);
         font-weight: 950;
         line-height: 1.05;
       }
 
       .pixel {
         position: absolute;
-        width: 44px;
-        height: 44px;
+        width: 36px;
+        height: 36px;
         border: 3px solid #ffffff;
         border-radius: 6px;
         box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
@@ -305,7 +305,7 @@
       .track {
         position: absolute;
         right: 34px;
-        bottom: 26px;
+        bottom: 18px;
         left: 34px;
         height: 14px;
         border: 2px solid #ffffff;
@@ -316,9 +316,9 @@
       .avatar {
         position: absolute;
         right: 54px;
-        bottom: 60px;
-        width: 68px;
-        height: 68px;
+        bottom: 38px;
+        width: 58px;
+        height: 58px;
         border: 4px solid #ffffff;
         border-radius: 12px;
         background: #8c7cff;
@@ -349,12 +349,12 @@
         grid-template-columns: 1fr auto;
         gap: 18px;
         align-items: center;
-        padding-top: 22px;
+        padding-top: 16px;
       }
 
       .dpad {
-        width: 92px;
-        height: 92px;
+        width: 74px;
+        height: 74px;
         position: relative;
       }
 
@@ -370,13 +370,13 @@
       }
 
       .dpad::before {
-        width: 34px;
-        height: 92px;
+        width: 28px;
+        height: 74px;
       }
 
       .dpad::after {
-        width: 92px;
-        height: 34px;
+        width: 74px;
+        height: 28px;
       }
 
       .buttons {
@@ -385,8 +385,8 @@
       }
 
       .button {
-        width: 56px;
-        height: 56px;
+        width: 48px;
+        height: 48px;
         border: 3px solid var(--line);
         border-radius: 50%;
         box-shadow: 4px 4px 0 var(--line);
@@ -405,7 +405,7 @@
         gap: 16px;
         align-items: end;
         justify-content: space-between;
-        margin: 58px 0 22px;
+        margin: 36px 0 12px;
       }
 
       .shelf-heading h2 {
@@ -425,15 +425,70 @@
         font-weight: 950;
       }
 
+      .shelf-note {
+        max-width: 720px;
+        margin: 0 0 24px;
+        color: #475467;
+        font-size: 0.98rem;
+        font-weight: 650;
+        line-height: 1.7;
+      }
+
+      .category-section {
+        margin-top: 30px;
+      }
+
+      .category-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .category-head {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .category-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: clamp(1.18rem, 2vw, 1.52rem);
+      }
+
+      .category-title::before {
+        width: 18px;
+        height: 18px;
+        border: 3px solid var(--line);
+        border-radius: 6px;
+        background: var(--category-color, var(--lemon));
+        box-shadow: 3px 3px 0 var(--line);
+        content: "";
+      }
+
+      .category-count {
+        padding: 6px 10px;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: #ffffff;
+        color: #344054;
+        font-size: 0.78rem;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
       .game-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 18px;
       }
 
       .game-card,
       .empty-slot {
-        min-height: 260px;
+        min-height: 318px;
         border: 3px solid var(--line);
         border-radius: 8px;
         background: var(--panel);
@@ -442,7 +497,7 @@
 
       .game-card {
         display: grid;
-        grid-template-rows: 128px 1fr;
+        grid-template-rows: 148px 1fr;
         overflow: hidden;
         color: inherit;
         text-decoration: none;
@@ -458,6 +513,11 @@
         outline: 0;
       }
 
+      .game-card:hover .game-icon,
+      .game-card:focus-visible .game-icon {
+        transform: translateY(-4px) rotate(-2deg);
+      }
+
       .game-art {
         position: relative;
         border-bottom: 3px solid var(--line);
@@ -470,27 +530,215 @@
 
       .game-art::before {
         position: absolute;
-        right: 20px;
-        bottom: 18px;
-        width: 54px;
-        height: 54px;
-        border: 3px solid var(--line);
-        border-radius: 10px;
-        background: #ffffff;
-        box-shadow: 6px 6px 0 rgba(23, 32, 51, 0.24);
+        right: 18px;
+        bottom: 17px;
+        left: 18px;
+        height: 16px;
+        border: 3px solid rgba(23, 32, 51, 0.82);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
         content: "";
       }
 
       .game-art::after {
         position: absolute;
-        left: 18px;
+        right: 20px;
         top: 18px;
-        width: 76px;
-        height: 26px;
+        width: 48px;
+        height: 24px;
         border: 3px solid var(--line);
         border-radius: 999px;
-        background: var(--lemon);
+        background: #ffffff;
+        box-shadow: 4px 4px 0 rgba(23, 32, 51, 0.18);
         content: "";
+      }
+
+      .game-icon {
+        position: absolute;
+        left: 22px;
+        bottom: 32px;
+        z-index: 1;
+        width: 84px;
+        height: 84px;
+        display: grid;
+        place-items: center;
+        border: 4px solid var(--line);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 7px 7px 0 rgba(23, 32, 51, 0.28);
+        color: var(--line);
+        font-size: 1.35rem;
+        font-weight: 950;
+        letter-spacing: 0;
+        transition: transform 160ms ease;
+      }
+
+      .game-icon::before,
+      .game-icon::after {
+        position: absolute;
+        border: 3px solid var(--line);
+        content: "";
+      }
+
+      .game-icon::before {
+        right: -14px;
+        top: -14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--lemon);
+      }
+
+      .game-icon::after {
+        left: -12px;
+        bottom: -12px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--mint);
+      }
+
+      .game-icon span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .icon-code {
+        background: #e0f2fe;
+      }
+
+      .icon-math {
+        background: #dcfce7;
+      }
+
+      .icon-math::before {
+        border-radius: 50%;
+      }
+
+      .icon-poem {
+        background: #fef3c7;
+      }
+
+      .icon-poem::after {
+        border-radius: 4px;
+        background: #fca5a5;
+      }
+
+      .icon-wolf-quiz,
+      .icon-wolf-game,
+      .icon-wolf-role {
+        background: #ede9fe;
+      }
+
+      .icon-wolf-quiz::before,
+      .icon-wolf-game::before,
+      .icon-wolf-role::before {
+        transform: rotate(45deg);
+        border-radius: 4px;
+        background: #c4b5fd;
+      }
+
+      .icon-wolf-game::after {
+        background: #fca5a5;
+      }
+
+      .icon-wolf-role::after {
+        border-radius: 5px;
+        background: #fde68a;
+      }
+
+      .icon-beast {
+        background: #fed7aa;
+      }
+
+      .icon-beast::after {
+        width: 30px;
+        border-radius: 8px;
+        background: #fdba74;
+      }
+
+      .icon-detective {
+        background: #d9f99d;
+      }
+
+      .icon-detective::before {
+        width: 34px;
+        border-radius: 999px;
+        background: #ffffff;
+      }
+
+      .icon-chat {
+        background: #cffafe;
+      }
+
+      .icon-chat::after {
+        border-radius: 4px 4px 12px 4px;
+        background: #67e8f9;
+      }
+
+      .icon-teach {
+        background: #fef9c3;
+      }
+
+      .icon-teach::before {
+        width: 36px;
+        height: 22px;
+        border-radius: 4px;
+      }
+
+      .icon-run,
+      .icon-stick,
+      .icon-banana,
+      .icon-fish,
+      .icon-school {
+        background: #e0f2fe;
+      }
+
+      .icon-run::before,
+      .icon-stick::before {
+        border-radius: 50%;
+        background: #fca5a5;
+      }
+
+      .icon-stick::after {
+        border-radius: 5px;
+        background: #f9a8d4;
+      }
+
+      .icon-banana {
+        background: #fef08a;
+      }
+
+      .icon-banana::before {
+        width: 34px;
+        height: 18px;
+        border-radius: 999px 999px 999px 4px;
+        background: #fde047;
+      }
+
+      .icon-fish {
+        background: #ccfbf1;
+      }
+
+      .icon-fish::before {
+        width: 34px;
+        height: 22px;
+        border-radius: 999px;
+        background: #5eead4;
+      }
+
+      .icon-school {
+        background: #e9d5ff;
+      }
+
+      .icon-school::before {
+        border-radius: 4px;
+        background: #ffffff;
+      }
+
+      .icon-school::after {
+        border-radius: 5px;
+        background: #c4b5fd;
       }
 
       .game-body {
@@ -515,6 +763,10 @@
         color: #344054;
         font-size: 0.76rem;
         font-weight: 850;
+      }
+
+      .chip-index {
+        background: #fff7ed;
       }
 
       .game-title {
@@ -598,23 +850,21 @@
         }
 
         .stats {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .stat {
+          min-height: 64px;
+          padding: 10px;
+        }
+
+        .stat strong {
+          font-size: 0.95rem;
         }
 
         .arcade {
-          padding: 16px;
-        }
-
-        .screen {
-          height: 230px;
-        }
-
-        .controls {
-          grid-template-columns: 1fr;
-        }
-
-        .buttons {
-          justify-content: flex-end;
+          display: none;
         }
 
         .shelf-heading {
@@ -636,32 +886,32 @@
 
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
-          <p class="label">Kids Made With AI</p>
+          <p class="label">Lele x Doubao</p>
           <h1 id="page-title">AI 小游戏乐园</h1>
           <p class="summary">
-            这里收纳小朋友和 AI 一起生成的小游戏作品。每一个文件夹都是一个独立游戏，
-            每个游戏只有自己的 index.html。
+            这里是乐乐和豆包一起做出来的小游戏展柜。每张卡片都是一个可以直接打开的作品：
+            有答题闯关、身份推理、故事互动，也有跑酷和躲避挑战。
           </p>
 
           <div class="stats" aria-label="项目概览">
             <div class="stat">
               <span>作者</span>
-              <strong>小朋友</strong>
+              <strong>乐乐 x 豆包</strong>
             </div>
             <div class="stat">
-              <span>制作</span>
-              <strong>AI 协作</strong>
+              <span>作品</span>
+              <strong>15 个小游戏</strong>
             </div>
             <div class="stat">
-              <span>结构</span>
-              <strong>folder/index.html</strong>
+              <span>入口</span>
+              <strong>点卡片开始</strong>
             </div>
           </div>
         </div>
 
         <div class="arcade" aria-hidden="true">
           <div class="screen">
-            <div class="screen-title">PLAY THE IDEAS</div>
+            <div class="screen-title">打开小游戏</div>
             <span class="pixel one"></span>
             <span class="pixel two"></span>
             <span class="pixel three"></span>
@@ -683,20 +933,180 @@
           <h2 id="games-title">游戏作品</h2>
           <span class="game-count" id="game-count">0</span>
         </div>
-        <div class="game-grid" id="game-grid"></div>
+        <p class="shelf-note">
+          按玩法分好类了。挑一张喜欢的卡片点进去，就能开始试玩乐乐的 AI 小游戏。
+        </p>
+        <div class="category-list" id="game-grid"></div>
       </section>
     </main>
 
     <script>
       const games = [
-        // {
-        //   name: "星星接力",
-        //   folder: "star-run",
-        //   creator: "乐乐",
-        //   type: "闯关",
-        //   description: "一个收集星星的小冒险。",
-        //   color: "#bde7ff",
-        // },
+        {
+          name: "编程猫知识闯关",
+          folder: "coding-cat-quest",
+          category: "学习闯关",
+          icon: "code",
+          mark: "CODE",
+          creator: "乐乐 x 豆包",
+          type: "知识闯关",
+          description: "用 30 道题学习编程猫、积木、舞台和循环基础。",
+          color: "#bde7ff",
+        },
+        {
+          name: "二年级数学闯关",
+          folder: "math-quest",
+          category: "学习闯关",
+          icon: "math",
+          mark: "123",
+          creator: "乐乐 x 豆包",
+          type: "数学答题",
+          description: "二年级下册数学题目练习，答对得分一路闯关。",
+          color: "#a8f0d0",
+        },
+        {
+          name: "唐诗闯关小书生",
+          folder: "tang-poem-quest",
+          category: "学习闯关",
+          icon: "poem",
+          mark: "诗",
+          creator: "乐乐 x 豆包",
+          type: "语文答题",
+          description: "二年级必背唐诗问答，用小游戏复习诗句。",
+          color: "#ffe56f",
+        },
+        {
+          name: "身份推理知识闯关",
+          folder: "werewolf-quiz",
+          category: "身份推理",
+          icon: "wolf-quiz",
+          mark: "问答",
+          creator: "乐乐 x 豆包",
+          type: "规则问答",
+          description: "用选择题认识不同身份、线索判断和投票规则。",
+          color: "#c9b7ff",
+        },
+        {
+          name: "简易身份推理",
+          folder: "simple-werewolf",
+          category: "身份推理",
+          icon: "wolf-game",
+          mark: "线索",
+          creator: "乐乐 x 豆包",
+          type: "桌游模拟",
+          description: "一个简化版身份推理流程，适合快速体验。",
+          color: "#ffb0d2",
+        },
+        {
+          name: "身份卡抽取",
+          folder: "werewolf-role-draw",
+          category: "身份推理",
+          icon: "wolf-role",
+          mark: "身份",
+          creator: "乐乐 x 豆包",
+          type: "身份抽取",
+          description: "随机抽取身份卡，看看这局会拿到什么角色。",
+          color: "#d6d9ff",
+        },
+        {
+          name: "神兽挑战",
+          folder: "treasure-beast-battle",
+          category: "故事互动",
+          icon: "beast",
+          mark: "兽",
+          creator: "乐乐 x 豆包",
+          type: "回合挑战",
+          description: "选择神兽参加挑战，体验大中华寻宝记风格冒险。",
+          color: "#ffd6a5",
+        },
+        {
+          name: "别墅失窃案",
+          folder: "detective-case",
+          category: "故事互动",
+          icon: "detective",
+          mark: "探",
+          creator: "乐乐 x 豆包",
+          type: "侦探推理",
+          description: "阅读线索、分析嫌疑人，找出失窃案真相。",
+          color: "#c6f6d5",
+        },
+        {
+          name: "豆包对话小屋",
+          folder: "doubao-chat-room",
+          category: "故事互动",
+          icon: "chat",
+          mark: "聊",
+          creator: "乐乐 x 豆包",
+          type: "对话互动",
+          description: "进入小屋和豆包聊天，体验文字互动小游戏。",
+          color: "#bde7ff",
+        },
+        {
+          name: "小游戏制作教学",
+          folder: "game-making-tutorial",
+          category: "学习闯关",
+          icon: "teach",
+          mark: "做",
+          creator: "乐乐 x 豆包",
+          type: "制作教学",
+          description: "按步骤学习网页小游戏主题、页面、按钮和交互。",
+          color: "#fef3c7",
+        },
+        {
+          name: "地铁跑酷",
+          folder: "subway-run",
+          category: "动作挑战",
+          icon: "run",
+          mark: "跑",
+          creator: "乐乐 x 豆包",
+          type: "动作躲避",
+          description: "移动、跳跃、下滑，躲避障碍并收集金币。",
+          color: "#bae6fd",
+        },
+        {
+          name: "木棍人躲避挑战",
+          folder: "escape-stickman",
+          category: "动作挑战",
+          icon: "stick",
+          mark: "逃",
+          creator: "乐乐 x 豆包",
+          type: "躲避挑战",
+          description: "控制小人躲开追赶，看看能坚持多久。",
+          color: "#fecaca",
+        },
+        {
+          name: "大香蕉躲避挑战",
+          folder: "escape-banana",
+          category: "动作挑战",
+          icon: "banana",
+          mark: "蕉",
+          creator: "乐乐 x 豆包",
+          type: "躲避挑战",
+          description: "在大香蕉追上来之前，带着角色们完成躲避挑战。",
+          color: "#fde68a",
+        },
+        {
+          name: "鱼吃鱼",
+          folder: "fish-eat-fish",
+          category: "动作挑战",
+          icon: "fish",
+          mark: "鱼",
+          creator: "乐乐 x 豆包",
+          type: "成长吞噬",
+          description: "吃掉更小的鱼慢慢变大，躲开更大的鱼。",
+          color: "#99f6e4",
+        },
+        {
+          name: "校园躲避挑战",
+          folder: "campus-granny-escape",
+          category: "动作挑战",
+          icon: "school",
+          mark: "校",
+          creator: "乐乐 x 豆包",
+          type: "躲避挑战",
+          description: "在校园场景里练习躲避和路线选择。",
+          color: "#ddd6fe",
+        },
       ];
 
       const grid = document.querySelector("#game-grid");
@@ -723,13 +1133,22 @@
         const art = document.createElement("div");
         art.className = "game-art";
 
+        const icon = document.createElement("div");
+        icon.className = `game-icon icon-${game.icon || "code"}`;
+        const iconText = document.createElement("span");
+        iconText.textContent = game.mark || game.name.slice(0, 1);
+        icon.append(iconText);
+        art.append(icon);
+
         const body = document.createElement("div");
         body.className = "game-body";
 
         const copy = document.createElement("div");
         const meta = document.createElement("div");
         meta.className = "game-meta";
-        meta.append(createChip(game.type || "小游戏"), createChip(game.creator || "AI 小作者"));
+        const indexChip = createChip(`作品 ${String(index + 1).padStart(2, "0")}`);
+        indexChip.classList.add("chip-index");
+        meta.append(createChip(game.type || "小游戏"), indexChip);
 
         const title = document.createElement("h3");
         title.className = "game-title";
@@ -767,8 +1186,46 @@
         `;
         grid.append(slot);
       } else {
+        const categoryOrder = ["学习闯关", "身份推理", "故事互动", "动作挑战"];
+        const categoryColors = {
+          学习闯关: "#ffe56f",
+          身份推理: "#c9b7ff",
+          故事互动: "#a8f0d0",
+          动作挑战: "#ff7f7f",
+        };
         const fragment = document.createDocumentFragment();
-        games.forEach((game, index) => fragment.append(createGameCard(game, index)));
+
+        categoryOrder.forEach((category) => {
+          const categoryGames = games.filter((game) => game.category === category);
+          if (categoryGames.length === 0) return;
+
+          const section = document.createElement("section");
+          section.className = "category-section";
+          section.style.setProperty("--category-color", categoryColors[category]);
+          section.setAttribute("aria-labelledby", `category-${category}`);
+
+          const head = document.createElement("div");
+          head.className = "category-head";
+
+          const title = document.createElement("h3");
+          title.className = "category-title";
+          title.id = `category-${category}`;
+          title.textContent = category;
+
+          const total = document.createElement("span");
+          total.className = "category-count";
+          total.textContent = `${categoryGames.length} 个作品`;
+
+          const list = document.createElement("div");
+          list.className = "game-grid";
+
+          categoryGames.forEach((game) => list.append(createGameCard(game, games.indexOf(game))));
+
+          head.append(title, total);
+          section.append(head, list);
+          fragment.append(section);
+        });
+
         grid.replaceChildren(fragment);
       }
     </script>
