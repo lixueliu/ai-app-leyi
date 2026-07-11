@@ -528,6 +528,413 @@
         content: "";
       }
 
+      .art-code {
+        background:
+          linear-gradient(90deg, rgba(23, 32, 51, 0.1) 1px, transparent 1px),
+          linear-gradient(rgba(23, 32, 51, 0.1) 1px, transparent 1px),
+          #bde7ff;
+        background-size: 16px 16px, 16px 16px, auto;
+      }
+
+      .art-code::before {
+        inset: 22px 18px 22px auto;
+        width: 112px;
+        height: 72px;
+        border-radius: 8px;
+        background:
+          linear-gradient(#a8f0d0 0 0) 14px 18px / 52px 5px no-repeat,
+          linear-gradient(#ffe56f 0 0) 14px 32px / 76px 5px no-repeat,
+          linear-gradient(#ff7f7f 0 0) 14px 46px / 38px 5px no-repeat,
+          #172033;
+      }
+
+      .art-code::after {
+        top: 17px;
+        right: 15px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--coral);
+        box-shadow: -24px 0 0 var(--lemon);
+      }
+
+      .art-math {
+        background:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.44) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.44) 75%) 0 0 / 28px 28px,
+          #a8f0d0;
+      }
+
+      .art-math::before {
+        right: auto;
+        bottom: 26px;
+        left: 22px;
+        width: 84px;
+        height: 62px;
+        border-radius: 8px;
+        background:
+          linear-gradient(var(--line) 0 0) center / 42px 7px no-repeat,
+          linear-gradient(var(--line) 0 0) center / 7px 42px no-repeat,
+          #ffffff;
+      }
+
+      .art-math::after {
+        top: 26px;
+        right: 28px;
+        width: 64px;
+        height: 46px;
+        border-radius: 8px;
+        background:
+          linear-gradient(var(--line) 0 0) center 14px / 34px 6px no-repeat,
+          linear-gradient(var(--line) 0 0) center 28px / 34px 6px no-repeat,
+          var(--lemon);
+      }
+
+      .art-poem {
+        background:
+          repeating-linear-gradient(0deg, transparent 0 23px, rgba(23, 32, 51, 0.16) 23px 25px),
+          #ffe56f;
+      }
+
+      .art-poem::before {
+        right: 22px;
+        bottom: 20px;
+        left: auto;
+        width: 116px;
+        height: 78px;
+        border-radius: 6px;
+        clip-path: polygon(0 100%, 24% 52%, 43% 74%, 66% 26%, 100% 100%);
+        background: #6b7f6a;
+      }
+
+      .art-poem::after {
+        top: 18px;
+        right: 28px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--coral);
+        box-shadow: none;
+      }
+
+      .art-wolf-quiz {
+        background: repeating-linear-gradient(135deg, #c9b7ff 0 18px, #b7a1f4 18px 36px);
+      }
+
+      .art-wolf-quiz::before {
+        inset: 20px auto 20px 24px;
+        width: 84px;
+        height: auto;
+        border-radius: 10px;
+        background: #ffffff;
+        transform: rotate(-6deg);
+      }
+
+      .art-wolf-quiz::after {
+        top: 34px;
+        right: 34px;
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: var(--lemon);
+        box-shadow: 8px 8px 0 rgba(23, 32, 51, 0.22);
+        transform: rotate(45deg);
+      }
+
+      .art-wolf-game {
+        background:
+          radial-gradient(circle at 20% 28%, #ffffff 0 8px, var(--line) 9px 12px, transparent 13px),
+          radial-gradient(circle at 50% 70%, #ffffff 0 8px, var(--line) 9px 12px, transparent 13px),
+          radial-gradient(circle at 78% 26%, #ffffff 0 8px, var(--line) 9px 12px, transparent 13px),
+          #ffb0d2;
+      }
+
+      .art-wolf-game::before {
+        right: 26px;
+        bottom: 30px;
+        left: 26px;
+        height: 4px;
+        border: 0;
+        border-radius: 0;
+        background: var(--line);
+        transform: rotate(-12deg);
+      }
+
+      .art-wolf-game::after {
+        top: 24px;
+        right: 24px;
+        width: 72px;
+        height: 30px;
+        border-radius: 6px;
+        background: #ffffff;
+      }
+
+      .art-wolf-role {
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.3) 2px, transparent 2px) 0 0 / 24px 24px,
+          #d6d9ff;
+      }
+
+      .art-wolf-role::before {
+        inset: 23px 28px 23px auto;
+        width: 70px;
+        height: auto;
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: -13px 9px 0 #a8f0d0, -23px 18px 0 #ffe56f;
+        transform: rotate(5deg);
+      }
+
+      .art-wolf-role::after {
+        top: 32px;
+        right: 49px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--violet);
+        box-shadow: none;
+      }
+
+      .art-beast {
+        background:
+          linear-gradient(30deg, rgba(255, 255, 255, 0.42) 12%, transparent 12% 88%, rgba(255, 255, 255, 0.42) 88%) 0 0 / 34px 34px,
+          #ffd6a5;
+      }
+
+      .art-beast::before {
+        right: 24px;
+        bottom: 22px;
+        left: auto;
+        width: 92px;
+        height: 78px;
+        border-radius: 50%;
+        background: #fff4df;
+        box-shadow: inset 0 0 0 12px #fdba74;
+      }
+
+      .art-beast::after {
+        top: 27px;
+        right: 54px;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: var(--coral);
+        transform: rotate(45deg);
+      }
+
+      .art-detective {
+        background:
+          linear-gradient(90deg, rgba(23, 32, 51, 0.14) 1px, transparent 1px),
+          linear-gradient(rgba(23, 32, 51, 0.14) 1px, transparent 1px),
+          #c6f6d5;
+        background-size: 30px 30px, 30px 30px, auto;
+      }
+
+      .art-detective::before {
+        right: 30px;
+        bottom: 34px;
+        left: auto;
+        width: 54px;
+        height: 54px;
+        border-width: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .art-detective::after {
+        top: auto;
+        right: 18px;
+        bottom: 22px;
+        width: 54px;
+        height: 10px;
+        border: 3px solid var(--line);
+        border-radius: 999px;
+        background: var(--lemon);
+        transform: rotate(45deg);
+      }
+
+      .art-chat {
+        background: repeating-linear-gradient(0deg, #bde7ff 0 22px, #c9efff 22px 44px);
+      }
+
+      .art-chat::before {
+        inset: 24px 24px auto auto;
+        width: 112px;
+        height: 58px;
+        border-radius: 18px 18px 4px 18px;
+        background: #ffffff;
+      }
+
+      .art-chat::after {
+        top: 44px;
+        right: 48px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--violet);
+        box-shadow: -22px 0 0 var(--coral), 22px 0 0 var(--mint);
+      }
+
+      .art-teach {
+        background:
+          linear-gradient(90deg, transparent 0 38px, rgba(255, 127, 127, 0.55) 38px 41px, transparent 41px),
+          repeating-linear-gradient(0deg, #fef3c7 0 23px, rgba(23, 32, 51, 0.16) 23px 25px);
+      }
+
+      .art-teach::before {
+        inset: 23px 24px 23px auto;
+        width: 112px;
+        height: auto;
+        border-radius: 6px;
+        background:
+          linear-gradient(var(--mint) 0 0) 16px 17px / 74px 9px no-repeat,
+          linear-gradient(var(--sky) 0 0) 16px 36px / 54px 9px no-repeat,
+          linear-gradient(var(--coral) 0 0) 16px 55px / 84px 9px no-repeat,
+          #ffffff;
+      }
+
+      .art-teach::after {
+        top: 19px;
+        right: 17px;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background: var(--lemon);
+      }
+
+      .art-run {
+        background:
+          linear-gradient(90deg, transparent 31%, rgba(255, 255, 255, 0.8) 31% 33%, transparent 33% 65%, rgba(255, 255, 255, 0.8) 65% 67%, transparent 67%),
+          #bae6fd;
+      }
+
+      .art-run::before {
+        right: 18px;
+        bottom: 19px;
+        left: 18px;
+        height: 18px;
+        border-radius: 3px;
+        background: repeating-linear-gradient(90deg, #ffffff 0 20px, var(--line) 20px 40px);
+      }
+
+      .art-run::after {
+        top: 24px;
+        right: 28px;
+        width: 38px;
+        height: 58px;
+        border-radius: 6px;
+        background: var(--coral);
+        box-shadow: -56px 28px 0 var(--lemon);
+      }
+
+      .art-stick {
+        background:
+          linear-gradient(90deg, var(--line) 3px, transparent 3px) 0 0 / 42px 42px,
+          linear-gradient(var(--line) 3px, transparent 3px) 0 0 / 42px 42px,
+          #fecaca;
+      }
+
+      .art-stick::before {
+        inset: 22px 24px 22px auto;
+        width: 96px;
+        height: auto;
+        border-radius: 4px;
+        background:
+          linear-gradient(var(--panel) 0 0) 0 22px / 72px 12px no-repeat,
+          linear-gradient(var(--panel) 0 0) 34px 0 / 12px 62px no-repeat,
+          var(--coral);
+      }
+
+      .art-stick::after {
+        top: 34px;
+        right: 38px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #ffffff;
+      }
+
+      .art-banana {
+        background: repeating-linear-gradient(135deg, #fde68a 0 20px, #fff2a8 20px 40px);
+      }
+
+      .art-banana::before {
+        right: 24px;
+        bottom: 28px;
+        left: auto;
+        width: 104px;
+        height: 54px;
+        border-radius: 4px 999px 999px 999px;
+        background: var(--lemon);
+        transform: rotate(-12deg);
+      }
+
+      .art-banana::after {
+        top: 29px;
+        right: 36px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: -34px 8px 0 #ffffff;
+      }
+
+      .art-fish {
+        background:
+          radial-gradient(ellipse at 20% 90%, rgba(255, 255, 255, 0.46) 0 18%, transparent 19%),
+          radial-gradient(ellipse at 68% 110%, rgba(255, 255, 255, 0.34) 0 26%, transparent 27%),
+          #99f6e4;
+      }
+
+      .art-fish::before {
+        right: 28px;
+        bottom: 38px;
+        left: auto;
+        width: 82px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--sky);
+      }
+
+      .art-fish::after {
+        top: auto;
+        right: 93px;
+        bottom: 43px;
+        width: 34px;
+        height: 34px;
+        border-radius: 4px;
+        background: var(--coral);
+        transform: rotate(45deg);
+      }
+
+      .art-school {
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.38) 2px, transparent 2px),
+          linear-gradient(rgba(255, 255, 255, 0.38) 2px, transparent 2px),
+          #ddd6fe;
+        background-size: 32px 32px, 32px 32px, auto;
+      }
+
+      .art-school::before {
+        inset: 24px 24px 20px auto;
+        width: 112px;
+        height: auto;
+        border-radius: 6px 6px 0 0;
+        background:
+          linear-gradient(var(--sky) 0 0) 16px 18px / 26px 24px no-repeat,
+          linear-gradient(var(--sky) 0 0) 68px 18px / 26px 24px no-repeat,
+          linear-gradient(var(--coral) 0 0) center bottom / 28px 34px no-repeat,
+          #ffffff;
+      }
+
+      .art-school::after {
+        top: 18px;
+        right: 55px;
+        width: 46px;
+        height: 24px;
+        border-radius: 4px;
+        background: var(--lemon);
+      }
+
       .game-icon {
         position: absolute;
         left: 22px;
@@ -576,6 +983,36 @@
       .game-icon span {
         position: relative;
         z-index: 1;
+      }
+
+      .art-math .game-icon,
+      .art-detective .game-icon,
+      .art-banana .game-icon {
+        right: 22px;
+        left: auto;
+      }
+
+      .art-poem .game-icon,
+      .art-wolf-game .game-icon,
+      .art-beast .game-icon,
+      .art-run .game-icon,
+      .art-fish .game-icon {
+        right: 50%;
+        left: auto;
+        transform: translateX(50%);
+      }
+
+      .game-card:hover .art-poem .game-icon,
+      .game-card:focus-visible .art-poem .game-icon,
+      .game-card:hover .art-wolf-game .game-icon,
+      .game-card:focus-visible .art-wolf-game .game-icon,
+      .game-card:hover .art-beast .game-icon,
+      .game-card:focus-visible .art-beast .game-icon,
+      .game-card:hover .art-run .game-icon,
+      .game-card:focus-visible .art-run .game-icon,
+      .game-card:hover .art-fish .game-icon,
+      .game-card:focus-visible .art-fish .game-icon {
+        transform: translate(50%, -4px) rotate(-2deg);
       }
 
       .icon-code {
@@ -721,6 +1158,26 @@
         gap: 18px;
         align-content: space-between;
         padding: 18px;
+      }
+
+      .card-wolf-quiz .game-body,
+      .card-wolf-game .game-body,
+      .card-wolf-role .game-body {
+        background: #fbfaff;
+      }
+
+      .card-beast .game-body,
+      .card-detective .game-body,
+      .card-chat .game-body {
+        background: #fbfff9;
+      }
+
+      .card-run .game-body,
+      .card-stick .game-body,
+      .card-banana .game-body,
+      .card-fish .game-body,
+      .card-school .game-body {
+        background: #fcfdff;
       }
 
       .game-meta {
@@ -1085,13 +1542,13 @@
         const colors = ["#bde7ff", "#a8f0d0", "#ffe56f", "#ffb0d2", "#c9b7ff"];
         const href = `${game.folder.replace(/\/$/, "")}/`;
         const card = document.createElement("a");
-        card.className = "game-card";
+        card.className = `game-card card-${game.icon || "code"}`;
         card.href = href;
         card.style.setProperty("--card-color", game.color || colors[index % colors.length]);
         card.setAttribute("aria-label", `打开 ${game.name}`);
 
         const art = document.createElement("div");
-        art.className = "game-art";
+        art.className = `game-art art-${game.icon || "code"}`;
 
         const icon = document.createElement("div");
         icon.className = `game-icon icon-${game.icon || "code"}`;
