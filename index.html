@@ -104,31 +104,6 @@
         content: "";
       }
 
-      .branch-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        min-height: 34px;
-        padding: 6px 12px;
-        border: 2px solid var(--line);
-        border-radius: 999px;
-        background: var(--panel);
-        box-shadow: 3px 3px 0 var(--line);
-        color: var(--ink);
-        font-size: 0.86rem;
-        font-weight: 800;
-        white-space: nowrap;
-      }
-
-      .branch-pill::before {
-        width: 10px;
-        height: 10px;
-        border: 2px solid var(--line);
-        border-radius: 50%;
-        background: var(--mint);
-        content: "";
-      }
-
       .hero {
         display: grid;
         grid-template-columns: minmax(0, 1.14fr) minmax(280px, 0.86fr);
@@ -765,10 +740,6 @@
         font-weight: 850;
       }
 
-      .chip-index {
-        background: #fff7ed;
-      }
-
       .game-title {
         margin: 0;
         font-size: 1.18rem;
@@ -881,7 +852,6 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <span>AI 小游戏乐园</span>
         </a>
-        <span class="branch-pill">main</span>
       </header>
 
       <section class="hero" aria-labelledby="page-title">
@@ -895,16 +865,16 @@
 
           <div class="stats" aria-label="项目概览">
             <div class="stat">
-              <span>作者</span>
-              <strong>乐乐 x 豆包</strong>
-            </div>
-            <div class="stat">
               <span>作品</span>
-              <strong>15 个小游戏</strong>
+              <strong id="hero-game-count">0 个小游戏</strong>
             </div>
             <div class="stat">
-              <span>入口</span>
-              <strong>点卡片开始</strong>
+              <span>玩法</span>
+              <strong id="hero-category-count">0 个分类</strong>
+            </div>
+            <div class="stat">
+              <span>制作</span>
+              <strong>AI 协作</strong>
             </div>
           </div>
         </div>
@@ -934,7 +904,7 @@
           <span class="game-count" id="game-count">0</span>
         </div>
         <p class="shelf-note">
-          按玩法分好类了。挑一张喜欢的卡片点进去，就能开始试玩乐乐的 AI 小游戏。
+          按玩法分好类了。挑一张喜欢的卡片点进去，就能开始试玩乐乐和豆包一起做的 AI 小游戏。
         </p>
         <div class="category-list" id="game-grid"></div>
       </section>
@@ -948,7 +918,6 @@
           category: "学习闯关",
           icon: "code",
           mark: "CODE",
-          creator: "乐乐 x 豆包",
           type: "知识闯关",
           description: "用 30 道题学习编程猫、积木、舞台和循环基础。",
           color: "#bde7ff",
@@ -959,7 +928,6 @@
           category: "学习闯关",
           icon: "math",
           mark: "123",
-          creator: "乐乐 x 豆包",
           type: "数学答题",
           description: "二年级下册数学题目练习，答对得分一路闯关。",
           color: "#a8f0d0",
@@ -970,7 +938,6 @@
           category: "学习闯关",
           icon: "poem",
           mark: "诗",
-          creator: "乐乐 x 豆包",
           type: "语文答题",
           description: "二年级必背唐诗问答，用小游戏复习诗句。",
           color: "#ffe56f",
@@ -981,7 +948,6 @@
           category: "身份推理",
           icon: "wolf-quiz",
           mark: "问答",
-          creator: "乐乐 x 豆包",
           type: "规则问答",
           description: "用选择题认识不同身份、线索判断和投票规则。",
           color: "#c9b7ff",
@@ -992,7 +958,6 @@
           category: "身份推理",
           icon: "wolf-game",
           mark: "线索",
-          creator: "乐乐 x 豆包",
           type: "桌游模拟",
           description: "一个简化版身份推理流程，适合快速体验。",
           color: "#ffb0d2",
@@ -1003,7 +968,6 @@
           category: "身份推理",
           icon: "wolf-role",
           mark: "身份",
-          creator: "乐乐 x 豆包",
           type: "身份抽取",
           description: "随机抽取身份卡，看看这局会拿到什么角色。",
           color: "#d6d9ff",
@@ -1014,7 +978,6 @@
           category: "故事互动",
           icon: "beast",
           mark: "兽",
-          creator: "乐乐 x 豆包",
           type: "回合挑战",
           description: "选择神兽参加挑战，体验大中华寻宝记风格冒险。",
           color: "#ffd6a5",
@@ -1025,7 +988,6 @@
           category: "故事互动",
           icon: "detective",
           mark: "探",
-          creator: "乐乐 x 豆包",
           type: "侦探推理",
           description: "阅读线索、分析嫌疑人，找出失窃案真相。",
           color: "#c6f6d5",
@@ -1036,7 +998,6 @@
           category: "故事互动",
           icon: "chat",
           mark: "聊",
-          creator: "乐乐 x 豆包",
           type: "对话互动",
           description: "进入小屋和豆包聊天，体验文字互动小游戏。",
           color: "#bde7ff",
@@ -1047,7 +1008,6 @@
           category: "学习闯关",
           icon: "teach",
           mark: "做",
-          creator: "乐乐 x 豆包",
           type: "制作教学",
           description: "按步骤学习网页小游戏主题、页面、按钮和交互。",
           color: "#fef3c7",
@@ -1058,7 +1018,6 @@
           category: "动作挑战",
           icon: "run",
           mark: "跑",
-          creator: "乐乐 x 豆包",
           type: "动作躲避",
           description: "移动、跳跃、下滑，躲避障碍并收集金币。",
           color: "#bae6fd",
@@ -1068,8 +1027,7 @@
           folder: "escape-stickman",
           category: "动作挑战",
           icon: "stick",
-          mark: "逃",
-          creator: "乐乐 x 豆包",
+          mark: "躲",
           type: "躲避挑战",
           description: "控制小人躲开追赶，看看能坚持多久。",
           color: "#fecaca",
@@ -1080,7 +1038,6 @@
           category: "动作挑战",
           icon: "banana",
           mark: "蕉",
-          creator: "乐乐 x 豆包",
           type: "躲避挑战",
           description: "在大香蕉追上来之前，带着角色们完成躲避挑战。",
           color: "#fde68a",
@@ -1091,7 +1048,6 @@
           category: "动作挑战",
           icon: "fish",
           mark: "鱼",
-          creator: "乐乐 x 豆包",
           type: "成长吞噬",
           description: "吃掉更小的鱼慢慢变大，躲开更大的鱼。",
           color: "#99f6e4",
@@ -1102,7 +1058,6 @@
           category: "动作挑战",
           icon: "school",
           mark: "校",
-          creator: "乐乐 x 豆包",
           type: "躲避挑战",
           description: "在校园场景里练习躲避和路线选择。",
           color: "#ddd6fe",
@@ -1111,8 +1066,13 @@
 
       const grid = document.querySelector("#game-grid");
       const count = document.querySelector("#game-count");
+      const heroGameCount = document.querySelector("#hero-game-count");
+      const heroCategoryCount = document.querySelector("#hero-category-count");
+      const categories = [...new Set(games.map((game) => game.category || "其他作品"))];
 
       count.textContent = games.length;
+      heroGameCount.textContent = `${games.length} 个小游戏`;
+      heroCategoryCount.textContent = `${categories.length} 个分类`;
 
       function createChip(text) {
         const chip = document.createElement("span");
@@ -1146,9 +1106,7 @@
         const copy = document.createElement("div");
         const meta = document.createElement("div");
         meta.className = "game-meta";
-        const indexChip = createChip(`作品 ${String(index + 1).padStart(2, "0")}`);
-        indexChip.classList.add("chip-index");
-        meta.append(createChip(game.type || "小游戏"), indexChip);
+        meta.append(createChip(game.type || "小游戏"));
 
         const title = document.createElement("h3");
         title.className = "game-title";
@@ -1186,7 +1144,11 @@
         `;
         grid.append(slot);
       } else {
-        const categoryOrder = ["学习闯关", "身份推理", "故事互动", "动作挑战"];
+        const preferredCategories = ["学习闯关", "身份推理", "故事互动", "动作挑战"];
+        const categoryOrder = [
+          ...preferredCategories.filter((category) => categories.includes(category)),
+          ...categories.filter((category) => !preferredCategories.includes(category)),
+        ];
         const categoryColors = {
           学习闯关: "#ffe56f",
           身份推理: "#c9b7ff",
@@ -1201,7 +1163,7 @@
 
           const section = document.createElement("section");
           section.className = "category-section";
-          section.style.setProperty("--category-color", categoryColors[category]);
+          section.style.setProperty("--category-color", categoryColors[category] || "#bde7ff");
           section.setAttribute("aria-labelledby", `category-${category}`);
 
           const head = document.createElement("div");
